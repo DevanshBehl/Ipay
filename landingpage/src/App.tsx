@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   ArrowRight, ShieldCheck, Zap,
-  Smartphone, Wallet, Send, PieChart,
-  Fingerprint, ArrowUpRight, Check,
+  Smartphone, Fingerprint, ArrowUpRight, Check, Lock,
 } from 'lucide-react';
 
 /* Reveal-on-scroll: adds `.reveal-in` to every [data-reveal] as it enters view. */
@@ -169,14 +168,14 @@ function App() {
             </div>
           </div>
 
-          {/* Phone mockup with parallax tilt */}
+          {/* Device composition: MacBook (checkout + extension) + phone (result) */}
           <div
             data-reveal
             style={{ transitionDelay: '200ms' }}
-            className="relative mx-auto lg:justify-self-end w-[300px] shrink-0 [perspective:1600px]"
+            className="relative mx-auto w-full max-w-[560px] [perspective:2200px]"
           >
             {/* Soft floor shadow */}
-            <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-3/4 h-12 bg-black rounded-[50%] blur-2xl opacity-80 pointer-events-none" />
+            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-[85%] h-10 bg-black rounded-[50%] blur-2xl opacity-80 pointer-events-none" />
 
             <div
               ref={phoneRef}
@@ -188,104 +187,143 @@ function App() {
               }}
             >
               {/* Rotating conic halo */}
-              <div className="absolute -inset-3 rounded-[58px] blur-2xl opacity-25 conic-ring animate-spin-slow pointer-events-none" />
+              <div className="absolute -inset-8 rounded-[40px] blur-3xl opacity-20 conic-ring animate-spin-slow pointer-events-none" />
 
-              {/* Titanium outer frame */}
-              <div className="relative rounded-[52px] p-[10px] bg-gradient-to-b from-zinc-500/90 via-zinc-800 to-zinc-600/90 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9)]">
-                {/* Side buttons */}
-                <div className="absolute -left-[2px] top-[112px] w-[3px] h-7 bg-zinc-700 rounded-l-sm" />
-                <div className="absolute -left-[2px] top-[150px] w-[3px] h-12 bg-zinc-700 rounded-l-sm" />
-                <div className="absolute -left-[2px] top-[196px] w-[3px] h-12 bg-zinc-700 rounded-l-sm" />
-                <div className="absolute -right-[2px] top-[168px] w-[3px] h-16 bg-zinc-700 rounded-r-sm" />
+              {/* ============================= MacBook ============================= */}
+              <div className="relative">
+                {/* Lid / screen */}
+                <div className="relative mx-auto w-[92%] rounded-t-[20px] rounded-b-[5px] bg-gradient-to-b from-zinc-700 to-zinc-800 p-[10px] pb-[12px] shadow-[0_36px_70px_-28px_rgba(0,0,0,0.95)]">
+                  {/* Camera */}
+                  <div className="absolute top-[4px] left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-zinc-600 ring-1 ring-black/40" />
 
-                {/* Inner black bezel */}
-                <div className="rounded-[44px] bg-black p-[3px]">
                   {/* Screen */}
-                  <div className="relative rounded-[42px] overflow-hidden bg-black aspect-[9/19.3] flex flex-col">
-                    {/* Dynamic island */}
-                    <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-[86px] h-[26px] bg-black rounded-full z-30 flex items-center justify-end pr-2.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
-                    </div>
-                    {/* Screen glare */}
-                    <div className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-br from-white/[0.07] via-transparent to-transparent" />
-                    {/* Home indicator */}
-                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-24 h-1 rounded-full bg-white/40 z-30" />
-
-                    {/* Status bar */}
-                    <div className="flex items-center justify-between px-6 pt-3.5 pb-1 text-white relative z-10">
-                      <span className="text-[11px] font-semibold tracking-wide">9:41</span>
-                      <div className="flex items-center gap-1.5">
-                        <svg width="15" height="11" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
-                        <svg width="14" height="11" viewBox="0 0 16 12" fill="currentColor"><path d="M8 2.5c2.3 0 4.4.9 6 2.4l1.4-1.5A11 11 0 0 0 8 .5 11 11 0 0 0 .6 3.4L2 4.9A8.6 8.6 0 0 1 8 2.5Zm0 4c1.2 0 2.3.5 3.1 1.3l1.4-1.5A6.6 6.6 0 0 0 8 4.5a6.6 6.6 0 0 0-4.5 1.8l1.4 1.5A4.6 4.6 0 0 1 8 6.5Zm0 4 2-2.1A2.7 2.7 0 0 0 8 8.5c-.8 0-1.5.3-2 .9L8 10.5Z"/></svg>
-                        <div className="flex items-center gap-0.5">
-                          <div className="w-[18px] h-[10px] rounded-[3px] border border-white/70 p-[1.5px]"><div className="w-full h-full bg-white rounded-[1px]" /></div>
-                          <div className="w-[1.5px] h-[4px] bg-white/70 rounded-r-sm" />
-                        </div>
+                  <div className="relative rounded-[7px] overflow-hidden bg-white aspect-[16/10] flex flex-col">
+                    {/* Browser chrome */}
+                    <div className="h-[26px] bg-[#dcdce1] flex items-center gap-2 px-2.5 shrink-0 border-b border-black/10">
+                      <div className="flex gap-1.5">
+                        <span className="w-[9px] h-[9px] rounded-full bg-[#ff5f57]" />
+                        <span className="w-[9px] h-[9px] rounded-full bg-[#febc2e]" />
+                        <span className="w-[9px] h-[9px] rounded-full bg-[#28c840]" />
+                      </div>
+                      <div className="flex-1 mx-1.5 h-[15px] rounded-full bg-white/95 border border-black/10 flex items-center gap-1 px-2">
+                        <Lock className="w-2 h-2 text-zinc-500" />
+                        <span className="text-[8px] text-zinc-500 truncate">checkout.novastore.in/pay</span>
+                      </div>
+                      {/* Extension toolbar icon (highlighted / active) */}
+                      <div className="w-[17px] h-[17px] rounded-md bg-zinc-900 flex items-center justify-center ring-2 ring-zinc-900/20 shrink-0">
+                        <Zap className="w-2.5 h-2.5 text-white" fill="currentColor" />
                       </div>
                     </div>
 
-                    {/* App content */}
-                    <div className="flex-1 min-h-0 flex flex-col px-4 pt-3 pb-6 bg-black">
-                      <div className="flex items-center gap-2.5 mb-4">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-b from-zinc-600 to-zinc-800" />
-                        <div className="flex flex-col">
-                          <span className="text-zinc-500 text-[10px]">Good Morning</span>
-                          <span className="font-semibold text-[13px]">Sajibur Rahman</span>
+                    {/* Checkout page */}
+                    <div className="flex-1 min-h-0 bg-[#f4f4f7] flex">
+                      {/* Left: order summary */}
+                      <div className="w-[52%] p-3.5 flex flex-col">
+                        <div className="flex items-center gap-1.5 mb-3">
+                          <div className="w-5 h-5 rounded-md bg-zinc-900 flex items-center justify-center text-white text-[10px] font-black">N</div>
+                          <span className="text-[11px] font-semibold text-zinc-900">Nova Store</span>
                         </div>
-                        <div className="ml-auto w-8 h-8 rounded-full border border-zinc-700 flex items-center justify-center">
-                          <div className="w-1 h-1 rounded-full bg-white" />
-                        </div>
-                      </div>
-
-                      {/* Silver monochrome card */}
-                      <div
-                        className="w-full p-4 rounded-2xl relative overflow-hidden flex flex-col justify-between shadow-lg shrink-0"
-                        style={{ height: '158px', background: 'linear-gradient(135deg, #f0f0f2 0%, #ccccd2 45%, #9a9aa0 100%)' }}
-                      >
-                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/60 rounded-full blur-2xl pointer-events-none" />
-                        <div className="flex items-center justify-between z-10">
-                          <div className="text-lg font-black italic tracking-tighter text-zinc-900">VISA</div>
-                          <div className="w-8 h-6 rounded-md border border-black/15 bg-gradient-to-br from-white/70 to-white/10" />
-                        </div>
-                        <div className="flex items-center gap-2 z-10 text-black/70 font-mono text-[11px] tracking-widest">
-                          <span>••••</span><span>••••</span><span>••••</span><span className="font-bold text-black">5466</span>
-                        </div>
-                        <div className="flex flex-col z-10">
-                          <span className="text-black/50 text-[9px] font-medium mb-0.5">Balance</span>
-                          <span className="text-lg font-bold text-black tracking-tight leading-none">$7,868,986.00</span>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-4 gap-2 my-4 shrink-0">
-                        {[Wallet, Send, Zap, PieChart].map((Icon, i) => (
-                          <div key={i} className="flex flex-col items-center">
-                            <div className="w-11 h-11 rounded-2xl bg-gradient-to-b from-zinc-800 to-zinc-900 border border-zinc-700/60 flex items-center justify-center text-zinc-100 shadow-md">
-                              <Icon className="w-[18px] h-[18px]" />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="flex-1 min-h-0 bg-[#131316] rounded-2xl p-3.5 border border-white/5 overflow-hidden">
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="text-[13px] font-medium">Transactions</span>
-                          <span className="text-[10px] text-zinc-500">See all</span>
-                        </div>
-                        <div className="space-y-3">
-                          {[['Henry James', '+$450.00'], ['Chris Michael', '+$250.00'], ['Ava Patel', '+$120.00']].map(([n, a], i) => (
-                            <div key={i} className="flex justify-between items-center">
-                              <div className="flex items-center gap-2">
-                                <div className="w-7 h-7 rounded-full bg-gradient-to-b from-zinc-700 to-zinc-800" />
-                                <div className="flex flex-col">
-                                  <span className="text-[11px] font-medium">{n}</span>
-                                  <span className="text-[9px] text-zinc-500">10:30 AM</span>
-                                </div>
-                              </div>
-                              <span className="text-[11px] font-semibold">{a}</span>
+                        <span className="text-[8px] text-zinc-500 mb-0.5 uppercase tracking-wide">Order total</span>
+                        <span className="text-[22px] font-bold text-zinc-900 leading-none mb-3">₹2,499.00</span>
+                        <div className="space-y-1.5">
+                          {[['Wireless Earbuds', '₹1,999'], ['Express Shipping', '₹500']].map(([label, price]) => (
+                            <div key={label} className="flex items-center justify-between text-[8.5px]">
+                              <span className="text-zinc-500">{label}</span>
+                              <span className="text-zinc-700 font-medium">{price}</span>
                             </div>
                           ))}
                         </div>
+                        <div className="mt-auto flex items-center gap-1 text-[7.5px] text-zinc-400">
+                          <Lock className="w-2 h-2" /> Secured by InstaPay
+                        </div>
                       </div>
+
+                      {/* Right: payment method */}
+                      <div className="flex-1 bg-white border-l border-black/5 p-3 flex flex-col">
+                        <span className="text-[8px] font-medium text-zinc-400 uppercase tracking-wide mb-2">Pay with</span>
+                        <div className="rounded-lg border-[1.5px] border-zinc-900 bg-zinc-50 p-1.5 flex items-center gap-1.5 mb-1.5">
+                          <div className="w-5 h-5 rounded bg-zinc-900 flex items-center justify-center shrink-0">
+                            <Zap className="w-3 h-3 text-white" fill="currentColor" />
+                          </div>
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-[8.5px] font-semibold text-zinc-900 leading-tight">InstaPay UPI</span>
+                            <span className="text-[7px] text-zinc-500 truncate">sajibur@okinstapay</span>
+                          </div>
+                          <div className="ml-auto w-3 h-3 rounded-full border-[1.5px] border-zinc-900 flex items-center justify-center shrink-0">
+                            <div className="w-1.5 h-1.5 rounded-full bg-zinc-900" />
+                          </div>
+                        </div>
+                        <div className="rounded-lg border border-black/10 p-1.5 flex items-center gap-1.5 mb-1.5 opacity-45">
+                          <div className="w-5 h-5 rounded bg-zinc-200 shrink-0" />
+                          <span className="text-[8.5px] font-medium text-zinc-600">Credit / Debit Card</span>
+                        </div>
+                        <button className="mt-auto w-full py-1.5 rounded-lg bg-zinc-900 text-white text-[9.5px] font-semibold">
+                          Pay ₹2,499.00
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* ===== InstaPay extension popup (signing the transaction) ===== */}
+                    <div className="absolute top-[32px] right-2.5 w-[46%] rounded-xl bg-[#0a0a0c] border border-white/12 shadow-[0_20px_45px_-12px_rgba(0,0,0,0.8)] overflow-hidden z-20 animate-float">
+                      {/* little pointer to the toolbar icon */}
+                      <div className="absolute -top-1 right-2 w-2 h-2 rotate-45 bg-[#0a0a0c] border-l border-t border-white/12" />
+                      {/* Header */}
+                      <div className="flex items-center gap-1.5 px-2.5 py-1.5 border-b border-white/8">
+                        <div className="w-3.5 h-3.5 rounded bg-white flex items-center justify-center">
+                          <Zap className="w-2 h-2 text-black" fill="currentColor" />
+                        </div>
+                        <span className="text-[8px] font-black italic text-white">InstaPay</span>
+                        <span className="ml-auto flex items-center gap-1 text-[6.5px] text-zinc-500">
+                          <span className="w-1 h-1 rounded-full bg-white" /> Secure
+                        </span>
+                      </div>
+                      {/* Body */}
+                      <div className="px-3 py-2.5 flex flex-col items-center text-center">
+                        <span className="text-[7.5px] text-zinc-500 mb-0.5">Approve payment to</span>
+                        <span className="text-[9px] font-semibold text-white mb-2">Nova Store</span>
+                        <span className="text-[19px] font-bold text-white leading-none mb-1">₹2,499.00</span>
+                        <span className="text-[7px] text-zinc-500 mb-2.5">UPI · HDFC Bank ••5466</span>
+                        {/* slide to approve */}
+                        <div className="w-full h-6 rounded-full bg-white/[0.07] border border-white/12 relative flex items-center px-0.5">
+                          <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center shrink-0 shadow">
+                            <ArrowRight className="w-3 h-3 text-black" />
+                          </div>
+                          <span className="flex-1 text-center text-[7.5px] text-zinc-300 font-medium">Slide to approve</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Screen glare */}
+                    <div className="absolute inset-0 z-30 pointer-events-none bg-gradient-to-br from-white/[0.06] via-transparent to-transparent" />
+                  </div>
+                </div>
+
+                {/* Base / deck */}
+                <div className="relative mx-auto w-full h-[11px] bg-gradient-to-b from-zinc-400 via-zinc-500 to-zinc-700 rounded-b-[10px] rounded-t-[2px]">
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[15%] h-[4px] bg-zinc-600 rounded-b-md" />
+                </div>
+                {/* Front lip shadow */}
+                <div className="mx-auto w-[72%] h-[3px] bg-black/50 blur-[2px] rounded-b-full" />
+              </div>
+
+              {/* ===== Phone in front (transaction result) ===== */}
+              <div className="absolute -bottom-5 -right-1 w-[120px] rotate-[-4deg] z-40">
+                <div className="rounded-[26px] p-[6px] bg-gradient-to-b from-zinc-500 to-zinc-700 shadow-[0_24px_44px_-12px_rgba(0,0,0,0.95)]">
+                  <div className="rounded-[22px] bg-black p-[2px]">
+                    <div className="relative rounded-[20px] overflow-hidden bg-black aspect-[9/19.3] flex flex-col items-center justify-center px-3 text-center">
+                      {/* Dynamic island */}
+                      <div className="absolute top-1.5 left-1/2 -translate-x-1/2 w-9 h-3 bg-black rounded-full ring-1 ring-white/5 z-10" />
+                      {/* Success glow */}
+                      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-24 h-24 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+                      <div className="w-11 h-11 rounded-full bg-white flex items-center justify-center mb-2.5 shadow-[0_0_24px_rgba(255,255,255,0.35)]">
+                        <Check className="w-6 h-6 text-black" strokeWidth={3} />
+                      </div>
+                      <span className="text-[10px] font-semibold text-white">Payment Successful</span>
+                      <span className="text-[17px] font-bold text-white leading-none mt-1.5">₹2,499.00</span>
+                      <span className="text-[7.5px] text-zinc-500 mt-1.5">Paid to Nova Store</span>
+                      <div className="mt-2.5 px-2 py-0.5 rounded-full bg-white/10 text-[6.5px] text-zinc-400">UPI Ref · 482093QK</div>
+                      {/* Home indicator */}
+                      <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-9 h-[3px] rounded-full bg-white/40" />
                     </div>
                   </div>
                 </div>
