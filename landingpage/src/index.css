@@ -1,32 +1,161 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #00E676;
   --color-dark: #000000;
-  --color-dark-surface: #1B1D22;
-  --color-glass: rgba(255, 255, 255, 0.05);
-  
-  --animate-fade-in: fade-in 0.6s ease-out forwards;
+  --color-dark-surface: #0c0c0e;
+  --color-glass: rgba(255, 255, 255, 0.04);
+
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-aurora: aurora 18s ease-in-out infinite alternate;
+  --animate-spin-slow: spin 14s linear infinite;
+  --animate-marquee: marquee 28s linear infinite;
+  --animate-shimmer-text: shimmer-text 6s linear infinite;
 }
 
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(10px); }
+/* ------------------------------------------------------------------ */
+/* Keyframes                                                           */
+/* ------------------------------------------------------------------ */
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-14px) rotate(-0.4deg); }
+}
+
+@keyframes aurora {
+  0% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.5; }
+  50% { transform: translate3d(4%, -3%, 0) scale(1.15); opacity: 0.8; }
+  100% { transform: translate3d(-3%, 4%, 0) scale(1.05); opacity: 0.6; }
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes shimmer-text {
+  to { background-position: 200% center; }
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(28px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* ------------------------------------------------------------------ */
+/* Base                                                                */
+/* ------------------------------------------------------------------ */
 html, body {
   background-color: var(--color-dark);
   color: #ffffff;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   margin: 0;
   padding: 0;
   scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Glassmorphism utility */
+::selection {
+  background: #ffffff;
+  color: #000000;
+}
+
+/* Slim monochrome scrollbar */
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: #000; }
+::-webkit-scrollbar-thumb {
+  background: #1c1c1f;
+  border-radius: 99px;
+  border: 3px solid #000;
+}
+::-webkit-scrollbar-thumb:hover { background: #2c2c31; }
+
+/* ------------------------------------------------------------------ */
+/* Utilities                                                           */
+/* ------------------------------------------------------------------ */
 .glass {
   background: var(--color-glass);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Fine noise/grain overlay for a premium print-like texture */
+.grain::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Animated silver text (monochrome sheen) */
+.text-sheen {
+  background: linear-gradient(100deg, #ffffff 0%, #6b6b70 35%, #ffffff 50%, #6b6b70 65%, #ffffff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: var(--animate-shimmer-text);
+}
+
+/* Hairline gradient divider */
+.hairline {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+}
+
+/* Scroll reveal (driven by IntersectionObserver adding .reveal-in) */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+[data-reveal].reveal-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Sheen sweep for primary buttons (uses a child .sheen span) */
+.sheen {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(0,0,0,0.14) 50%, transparent 70%);
+  transform: translateX(-140%);
+  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-primary:hover .sheen { transform: translateX(140%); }
+
+/* Rotating conic ring for the phone frame highlight */
+.conic-ring {
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.35) 40deg, transparent 120deg, transparent 360deg);
+}
+
+/* Spotlight follows cursor inside feature cards */
+.spotlight-card {
+  position: relative;
+  overflow: hidden;
+}
+.spotlight-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,0.10), transparent 60%);
+}
+.spotlight-card:hover::before { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  [data-reveal] { opacity: 1; transform: none; }
 }

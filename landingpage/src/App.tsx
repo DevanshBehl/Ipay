@@ -1,123 +1,254 @@
-import React from 'react';
-import { 
-  ArrowRight, ShieldCheck, Zap, 
+import { useEffect, useRef, useState } from 'react';
+import {
+  ArrowRight, ShieldCheck, Zap,
   Smartphone, Wallet, Send, PieChart,
-  CheckCircle2
+  Fingerprint, ArrowUpRight, Check,
 } from 'lucide-react';
 
+/* Reveal-on-scroll: adds `.reveal-in` to every [data-reveal] as it enters view. */
+function useScrollReveal() {
+  useEffect(() => {
+    const els = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('reveal-in');
+            io.unobserve(entry.target);
+          }
+        }
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -8% 0px' }
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+}
+
+/* Small helper so cards can host a cursor-following spotlight. */
+function useSpotlight() {
+  return (e: React.MouseEvent<HTMLElement>) => {
+    const el = e.currentTarget;
+    const r = el.getBoundingClientRect();
+    el.style.setProperty('--mx', `${e.clientX - r.left}px`);
+    el.style.setProperty('--my', `${e.clientY - r.top}px`);
+  };
+}
+
 function App() {
+  useScrollReveal();
+  const onSpot = useSpotlight();
+
+  // Parallax tilt for the hero phone mockup.
+  const phoneRef = useRef<HTMLDivElement>(null);
+  const [tilt, setTilt] = useState({ rx: 0, ry: 0 });
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const handleHeroMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = phoneRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - 0.5;
+    const py = (e.clientY - r.top) / r.height - 0.5;
+    setTilt({ rx: -py * 8, ry: px * 10 });
+  };
+
   return (
-    <div className="min-h-screen bg-[#000000] text-white selection:bg-[#00E676] selection:text-black">
-      {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-zinc-800/50">
+    <div className="min-h-screen bg-black text-white grain relative">
+      {/* ---------------------------------------------------------------- */}
+      {/* Navbar                                                            */}
+      {/* ---------------------------------------------------------------- */}
+      <nav
+        className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
+          scrolled ? 'glass border-b border-white/10 py-0' : 'bg-transparent border-b border-transparent'
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00E676] to-[#00A355] flex items-center justify-center">
-              <Zap className="w-6 h-6 text-black" fill="currentColor" />
-            </div>
-            <span className="text-2xl font-black italic tracking-tighter text-white">InstaPay</span>
-          </div>
-          
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-300">
-            <a href="#features" className="hover:text-white transition-colors">Features</a>
-            <a href="#security" className="hover:text-white transition-colors">Security</a>
-            <a href="#testimonials" className="hover:text-white transition-colors">Testimonials</a>
+          <a href="#top" className="group flex items-center gap-2.5">
+            <span className="relative w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center overflow-hidden transition-transform duration-500 group-hover:rotate-[18deg]">
+              <Zap className="w-5 h-5" fill="currentColor" />
+            </span>
+            <span className="text-2xl font-black italic tracking-tighter">InstaPay</span>
+          </a>
+
+          <div className="hidden md:flex items-center gap-9 text-sm font-medium text-zinc-400">
+            {['Features', 'Security', 'Company'].map((label) => (
+              <a
+                key={label}
+                href={`#${label.toLowerCase()}`}
+                className="relative py-1 transition-colors hover:text-white after:absolute after:left-0 after:-bottom-0.5 after:h-px after:w-0 after:bg-white after:transition-all after:duration-300 hover:after:w-full"
+              >
+                {label}
+              </a>
+            ))}
           </div>
 
-          <button className="px-6 py-2.5 rounded-full bg-white text-black font-semibold text-sm hover:bg-zinc-200 transition-all active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-            Get the App
+          <button className="btn-primary group relative overflow-hidden px-5 py-2.5 rounded-full bg-white text-black font-semibold text-sm transition-transform duration-300 active:scale-95 hover:shadow-[0_0_28px_rgba(255,255,255,0.28)]">
+            <span className="sheen" />
+            <span className="relative z-10">Get the App</span>
           </button>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative pt-40 pb-20 overflow-hidden min-h-screen flex items-center">
-        {/* Glow Effects */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#00E676] opacity-10 rounded-full blur-[100px] pointer-events-none"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#0A2265] opacity-20 rounded-full blur-[100px] pointer-events-none"></div>
-        
-        <div className="max-w-7xl mx-auto px-6 w-full grid lg:grid-cols-2 gap-16 items-center">
-          <div className="animate-fade-in z-10 flex flex-col items-start text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#00E676]/30 bg-[#00E676]/10 text-[#00E676] text-xs font-semibold mb-6">
-              <span className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse"></span>
-              The Future of UPI is Here
-            </div>
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
-              Fast, Secure & <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00E676] to-[#00A355]">
-                Simple UPI.
+      {/* ---------------------------------------------------------------- */}
+      {/* Hero                                                              */}
+      {/* ---------------------------------------------------------------- */}
+      <section
+        id="top"
+        onMouseMove={handleHeroMove}
+        className="relative pt-40 pb-24 overflow-hidden min-h-screen flex items-center"
+      >
+        {/* Aurora glows — monochrome */}
+        <div className="absolute -top-1/4 left-1/2 -translate-x-1/2 w-[70rem] h-[70rem] bg-[radial-gradient(circle,_rgba(255,255,255,0.10)_0%,_transparent_60%)] animate-aurora pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-[36rem] h-[36rem] bg-[radial-gradient(circle,_rgba(255,255,255,0.06)_0%,_transparent_60%)] animate-aurora pointer-events-none" style={{ animationDelay: '-6s' }} />
+        {/* Grid lines */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.06] [background-image:linear-gradient(rgba(255,255,255,0.6)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.6)_1px,transparent_1px)] [background-size:64px_64px] [mask-image:radial-gradient(ellipse_at_center,black_20%,transparent_75%)]" />
+
+        <div className="max-w-7xl mx-auto px-6 w-full grid lg:grid-cols-2 gap-16 items-center relative z-10">
+          {/* Copy */}
+          <div className="flex flex-col items-start text-left">
+            <div
+              data-reveal
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/15 bg-white/5 text-zinc-200 text-xs font-medium mb-7"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-white opacity-60 animate-ping" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
               </span>
+              The future of UPI is here
+            </div>
+
+            <h1
+              data-reveal
+              style={{ transitionDelay: '80ms' }}
+              className="text-5xl md:text-7xl font-semibold tracking-tight leading-[1.05] mb-6"
+            >
+              Payments,
+              <br />
+              refined to
+              <br />
+              <span className="text-sheen">pure motion.</span>
             </h1>
-            <p className="text-lg md:text-xl text-zinc-400 mb-10 max-w-lg leading-relaxed">
-              Experience the next generation of digital payments. Send money, track expenses, and manage your finances with military-grade security.
+
+            <p
+              data-reveal
+              style={{ transitionDelay: '160ms' }}
+              className="text-lg text-zinc-400 mb-10 max-w-lg leading-relaxed"
+            >
+              Send money, track spending, and manage every account from one
+              impossibly fast wallet — wrapped in bank-grade security.
             </p>
-            
-            <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-              <button className="w-full sm:w-auto px-8 py-4 rounded-full bg-[#00E676] text-black font-bold text-lg flex items-center justify-center gap-2 hover:bg-[#00C853] transition-all active:scale-95 shadow-[0_0_30px_rgba(0,230,118,0.3)]">
-                Download Now <ArrowRight className="w-5 h-5" />
+
+            <div data-reveal style={{ transitionDelay: '240ms' }} className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+              <button className="btn-primary group relative overflow-hidden w-full sm:w-auto px-7 py-4 rounded-full bg-white text-black font-semibold text-[15px] flex items-center justify-center gap-2 transition-transform duration-300 active:scale-95 hover:shadow-[0_0_36px_rgba(255,255,255,0.3)]">
+                <span className="sheen" />
+                <span className="relative z-10 flex items-center gap-2">
+                  Download Now
+                  <ArrowRight className="w-4.5 h-4.5 transition-transform duration-300 group-hover:translate-x-1" />
+                </span>
               </button>
-              <button className="w-full sm:w-auto px-8 py-4 rounded-full border border-zinc-700 bg-zinc-900/50 text-white font-bold text-lg hover:bg-zinc-800 transition-all active:scale-95">
+              <button className="group w-full sm:w-auto px-7 py-4 rounded-full border border-white/15 bg-white/[0.02] text-white font-semibold text-[15px] flex items-center justify-center gap-2 transition-all duration-300 active:scale-95 hover:bg-white/[0.06] hover:border-white/30">
                 View Web Wallet
+                <ArrowUpRight className="w-4.5 h-4.5 text-zinc-400 transition-all duration-300 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </button>
+            </div>
+
+            <div data-reveal style={{ transitionDelay: '320ms' }} className="flex items-center gap-3 mt-9 text-sm text-zinc-500">
+              <div className="flex -space-x-2">
+                {[1, 2, 3, 4].map((i) => (
+                  <span key={i} className="w-7 h-7 rounded-full bg-gradient-to-b from-zinc-700 to-zinc-900 border border-black" />
+                ))}
+              </div>
+              <span>Trusted by <span className="text-white font-medium">2M+</span> people</span>
             </div>
           </div>
 
-          {/* Hero Image / App Mockup */}
-          <div className="relative z-10 mx-auto w-full max-w-[320px] lg:max-w-none animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            <div className="relative rounded-[40px] border-[8px] border-zinc-900 bg-black overflow-hidden shadow-2xl shadow-black/50 aspect-[9/19]">
-              {/* Fake status bar */}
-              <div className="h-6 bg-black flex justify-between items-center px-6 pt-2">
-                 <span className="text-[10px] font-medium">9:41</span>
-                 <div className="flex gap-1">
-                   <div className="w-3 h-2.5 border border-white rounded-[2px]"></div>
-                 </div>
-              </div>
-              
-              {/* App Content Mockup */}
-              <div className="p-5 flex flex-col h-full bg-black">
-                <div className="flex items-center gap-3 mb-8">
-                  <div className="w-10 h-10 rounded-full bg-zinc-800"></div>
-                  <div className="flex flex-col">
-                    <span className="text-zinc-400 text-[10px]">Good Morning</span>
-                    <span className="font-semibold text-sm">Sajibur Rahman</span>
-                  </div>
+          {/* Phone mockup with parallax tilt */}
+          <div
+            data-reveal
+            style={{ transitionDelay: '200ms' }}
+            className="relative mx-auto w-full max-w-[300px] lg:max-w-none [perspective:1400px]"
+          >
+            <div
+              ref={phoneRef}
+              className="relative animate-float"
+              style={{
+                transform: `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)`,
+                transformStyle: 'preserve-3d',
+                transition: 'transform 0.25s ease-out',
+              }}
+            >
+              {/* Rotating conic halo */}
+              <div className="absolute -inset-6 rounded-[52px] blur-2xl opacity-40 conic-ring animate-spin-slow pointer-events-none" />
+
+              <div className="relative rounded-[42px] border-[9px] border-zinc-900 bg-black overflow-hidden shadow-2xl shadow-black/60 aspect-[9/19]">
+                {/* Notch */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-black rounded-b-2xl z-20" />
+                {/* Status bar */}
+                <div className="h-8 bg-black flex justify-between items-center px-6 pt-2 relative z-10">
+                  <span className="text-[10px] font-medium">9:41</span>
+                  <div className="w-3 h-2.5 border border-white rounded-[2px]" />
                 </div>
 
-                <div className="instapay-card w-full p-5 rounded-2xl relative overflow-hidden flex flex-col justify-between mb-6 shadow-xl" style={{ minHeight: '180px', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)' }}>
-                  <div className="flex items-center justify-between z-10">
-                    <div className="text-xl font-black italic tracking-tighter text-[#0A2265]">VISA</div>
-                  </div>
-                  <div className="flex items-center gap-2 mt-4 mb-2 z-10 text-black/80 font-mono text-xs">
-                    <span>****</span><span>****</span><span>****</span><span className="font-bold">5466</span>
-                  </div>
-                  <div className="flex flex-col z-10 mt-auto">
-                    <span className="text-black/60 text-[10px] font-medium mb-1">Balance</span>
-                    <span className="text-xl font-bold text-black tracking-tight leading-none">$786,898,67.00</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-4 gap-3 mb-6">
-                  {[Wallet, Send, Zap, PieChart].map((Icon, i) => (
-                    <div key={i} className="flex flex-col items-center gap-2">
-                      <div className="w-12 h-12 rounded-[18px] bg-gradient-to-b from-zinc-800 to-zinc-900 border border-zinc-700/60 flex items-center justify-center text-zinc-100 shadow-md">
-                        <Icon className="w-5 h-5" />
-                      </div>
+                <div className="p-5 flex flex-col h-full bg-black">
+                  <div className="flex items-center gap-3 mb-7">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-b from-zinc-700 to-zinc-900" />
+                    <div className="flex flex-col">
+                      <span className="text-zinc-500 text-[10px]">Good Morning</span>
+                      <span className="font-semibold text-sm">Sajibur Rahman</span>
                     </div>
-                  ))}
-                </div>
+                  </div>
 
-                <div className="flex-1 bg-[#1B1D22] rounded-2xl p-4">
-                  <span className="text-sm font-medium mb-3 block">Transactions</span>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-zinc-700"></div>
-                        <div className="flex flex-col">
-                          <span className="text-xs font-medium">Henry James</span>
-                          <span className="text-[9px] text-zinc-500">10:30 AM</span>
+                  {/* Silver monochrome card */}
+                  <div
+                    className="w-full p-5 rounded-2xl relative overflow-hidden flex flex-col justify-between mb-6 shadow-xl"
+                    style={{ minHeight: '176px', background: 'linear-gradient(135deg, #ececee 0%, #c7c7cc 45%, #97979d 100%)' }}
+                  >
+                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/50 rounded-full blur-2xl pointer-events-none" />
+                    <div className="flex items-center justify-between z-10">
+                      <div className="text-xl font-black italic tracking-tighter text-zinc-900">VISA</div>
+                      <div className="w-8 h-6 rounded border border-black/20 bg-gradient-to-br from-white/60 to-white/10" />
+                    </div>
+                    <div className="flex items-center gap-2 mt-4 mb-2 z-10 text-black/70 font-mono text-xs tracking-widest">
+                      <span>****</span><span>****</span><span>****</span><span className="font-bold text-black">5466</span>
+                    </div>
+                    <div className="flex flex-col z-10 mt-auto">
+                      <span className="text-black/50 text-[10px] font-medium mb-1">Balance</span>
+                      <span className="text-xl font-bold text-black tracking-tight leading-none">$7,868,986.00</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-3 mb-6">
+                    {[Wallet, Send, Zap, PieChart].map((Icon, i) => (
+                      <div key={i} className="flex flex-col items-center">
+                        <div className="w-12 h-12 rounded-[18px] bg-gradient-to-b from-zinc-800 to-zinc-900 border border-zinc-700/60 flex items-center justify-center text-zinc-100 shadow-md">
+                          <Icon className="w-5 h-5" />
                         </div>
                       </div>
-                      <span className="text-xs font-semibold">+$450.00</span>
+                    ))}
+                  </div>
+
+                  <div className="flex-1 bg-[#131316] rounded-2xl p-4 border border-white/5">
+                    <span className="text-sm font-medium mb-3 block">Transactions</span>
+                    <div className="space-y-3">
+                      {[['Henry James', '+$450.00'], ['Chris Michael', '+$250.00']].map(([n, a], i) => (
+                        <div key={i} className="flex justify-between items-center">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-b from-zinc-700 to-zinc-800" />
+                            <div className="flex flex-col">
+                              <span className="text-xs font-medium">{n}</span>
+                              <span className="text-[9px] text-zinc-500">10:30 AM</span>
+                            </div>
+                          </div>
+                          <span className="text-xs font-semibold">{a}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -127,50 +258,181 @@ function App() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-24 bg-zinc-950 relative border-t border-zinc-900">
+      {/* ---------------------------------------------------------------- */}
+      {/* Marquee trust strip                                               */}
+      {/* ---------------------------------------------------------------- */}
+      <section className="relative border-y border-white/10 py-8 overflow-hidden">
+        <div className="flex w-max animate-marquee gap-16 pr-16 [mask-image:linear-gradient(90deg,transparent,black_12%,black_88%,transparent)]">
+          {Array.from({ length: 2 }).map((_, dup) => (
+            <div key={dup} className="flex items-center gap-16 pr-16 shrink-0">
+              {['VISA', 'Mastercard', 'RuPay', 'UPI', 'PayNow', 'SWIFT'].map((brand) => (
+                <span key={brand} className="text-2xl font-black italic tracking-tighter text-zinc-600 hover:text-white transition-colors">
+                  {brand}
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ---------------------------------------------------------------- */}
+      {/* Features                                                          */}
+      {/* ---------------------------------------------------------------- */}
+      <section id="features" className="py-28 relative">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">Everything you need.</h2>
-            <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
-              Manage all your finances in one beautifully designed, lightning-fast application.
+          <div className="max-w-2xl mb-16">
+            <span data-reveal className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">Features</span>
+            <h2 data-reveal style={{ transitionDelay: '80ms' }} className="text-4xl md:text-5xl font-semibold tracking-tight mt-3 mb-4">
+              Everything you need.<br />Nothing you don't.
+            </h2>
+            <p data-reveal style={{ transitionDelay: '160ms' }} className="text-zinc-400 text-lg leading-relaxed">
+              Every account, card, and transaction in one beautifully designed,
+              lightning-fast surface.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-5">
             {[
-              { title: 'Lightning Fast UPI', desc: 'Scan, pay, and transfer money instantly without any server delays.', icon: Zap },
-              { title: 'Bank-Grade Security', desc: 'Your money is protected by state-of-the-art encryption and biometric locks.', icon: ShieldCheck },
-              { title: 'Seamless Web Wallet', desc: 'Access your funds and transaction history from any browser, anywhere.', icon: Smartphone },
+              { title: 'Instant UPI', desc: 'Scan, pay, and transfer in milliseconds — no spinners, no waiting.', icon: Zap },
+              { title: 'Bank-Grade Security', desc: 'End-to-end encryption and biometric locks guard every rupee.', icon: ShieldCheck },
+              { title: 'Anywhere Access', desc: 'Your funds and history, perfectly in sync across every device.', icon: Smartphone },
             ].map((feat, i) => (
-              <div key={i} className="glass p-8 rounded-3xl hover:bg-zinc-900/80 transition-colors border-zinc-800">
-                <div className="w-12 h-12 rounded-2xl bg-[#00E676]/10 text-[#00E676] flex items-center justify-center mb-6">
-                  <feat.icon className="w-6 h-6" />
+              <div
+                key={i}
+                data-reveal
+                style={{ transitionDelay: `${i * 100}ms` }}
+                onMouseMove={onSpot}
+                className="spotlight-card group glass rounded-3xl p-8 border-white/8 transition-all duration-500 hover:-translate-y-1.5 hover:border-white/20"
+              >
+                <div className="relative z-10">
+                  <div className="w-12 h-12 rounded-2xl bg-white/8 border border-white/10 text-white flex items-center justify-center mb-6 transition-all duration-500 group-hover:bg-white group-hover:text-black">
+                    <feat.icon className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3">{feat.title}</h3>
+                  <p className="text-zinc-400 leading-relaxed">{feat.desc}</p>
                 </div>
-                <h3 className="text-xl font-semibold mb-3">{feat.title}</h3>
-                <p className="text-zinc-400 leading-relaxed">{feat.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-12 border-t border-zinc-900 bg-black">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00E676] to-[#00A355] flex items-center justify-center">
-              <Zap className="w-4 h-4 text-black" fill="currentColor" />
+      {/* ---------------------------------------------------------------- */}
+      {/* Security split + stats                                             */}
+      {/* ---------------------------------------------------------------- */}
+      <section id="security" className="py-28 relative border-t border-white/10">
+        <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[30rem] h-[30rem] bg-[radial-gradient(circle,_rgba(255,255,255,0.05)_0%,_transparent_60%)] pointer-events-none" />
+        <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center relative z-10">
+          <div>
+            <span data-reveal className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">Security</span>
+            <h2 data-reveal style={{ transitionDelay: '80ms' }} className="text-4xl md:text-5xl font-semibold tracking-tight mt-3 mb-6">
+              Built like a vault.<br />Feels like nothing.
+            </h2>
+            <p data-reveal style={{ transitionDelay: '160ms' }} className="text-zinc-400 text-lg leading-relaxed mb-8">
+              Protection runs silently in the background so you never think about
+              it — until the moment you need it.
+            </p>
+            <ul className="space-y-4">
+              {[
+                'AES-256 end-to-end encryption on every transfer',
+                'Biometric & device-bound authentication',
+                'Real-time fraud detection, on-device',
+              ].map((item, i) => (
+                <li
+                  key={i}
+                  data-reveal
+                  style={{ transitionDelay: `${200 + i * 90}ms` }}
+                  className="flex items-center gap-3 text-zinc-200"
+                >
+                  <span className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center shrink-0">
+                    <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                  </span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Security emblem */}
+          <div data-reveal style={{ transitionDelay: '160ms' }} className="relative mx-auto">
+            <div className="relative w-64 h-64 mx-auto">
+              <div className="absolute inset-0 rounded-full border border-white/10" />
+              <div className="absolute inset-6 rounded-full border border-white/10 animate-spin-slow" />
+              <div className="absolute inset-0 rounded-full blur-2xl conic-ring animate-spin-slow opacity-30" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-28 h-28 rounded-3xl bg-white text-black flex items-center justify-center shadow-[0_0_60px_rgba(255,255,255,0.25)]">
+                  <Fingerprint className="w-14 h-14" strokeWidth={1.5} />
+                </div>
+              </div>
             </div>
+          </div>
+        </div>
+
+        {/* Stats band */}
+        <div className="max-w-7xl mx-auto px-6 mt-24">
+          <div className="hairline mb-12" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {[
+              ['2M+', 'Active users'],
+              ['$4.8B', 'Processed monthly'],
+              ['99.99%', 'Uptime'],
+              ['0.2s', 'Avg. transfer'],
+            ].map(([value, label], i) => (
+              <div key={i} data-reveal style={{ transitionDelay: `${i * 90}ms` }} className="text-center md:text-left">
+                <div className="text-4xl md:text-5xl font-semibold tracking-tight">{value}</div>
+                <div className="text-zinc-500 text-sm mt-2">{label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ---------------------------------------------------------------- */}
+      {/* Final CTA                                                         */}
+      {/* ---------------------------------------------------------------- */}
+      <section className="py-28 relative">
+        <div className="max-w-5xl mx-auto px-6">
+          <div
+            data-reveal
+            onMouseMove={onSpot}
+            className="spotlight-card relative overflow-hidden rounded-[36px] border border-white/12 bg-gradient-to-b from-white/[0.06] to-transparent px-8 py-16 md:p-20 text-center"
+          >
+            <div className="absolute -top-1/2 left-1/2 -translate-x-1/2 w-[40rem] h-[40rem] bg-[radial-gradient(circle,_rgba(255,255,255,0.08)_0%,_transparent_60%)] pointer-events-none" />
+            <h2 className="relative z-10 text-4xl md:text-6xl font-semibold tracking-tight mb-6">
+              Move money like it's<br /><span className="text-sheen">weightless.</span>
+            </h2>
+            <p className="relative z-10 text-zinc-400 text-lg max-w-xl mx-auto mb-10">
+              Join millions who've made the switch to the fastest wallet on the planet.
+            </p>
+            <button className="btn-primary group relative overflow-hidden z-10 px-8 py-4 rounded-full bg-white text-black font-semibold text-[15px] inline-flex items-center gap-2 transition-transform duration-300 active:scale-95 hover:shadow-[0_0_40px_rgba(255,255,255,0.35)]">
+              <span className="sheen" />
+              <span className="relative z-10 flex items-center gap-2">
+                Get InstaPay Free
+                <ArrowRight className="w-4.5 h-4.5 transition-transform duration-300 group-hover:translate-x-1" />
+              </span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------------------------------------------------------------- */}
+      {/* Footer                                                            */}
+      {/* ---------------------------------------------------------------- */}
+      <footer id="company" className="py-12 border-t border-white/10 bg-black relative z-10">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-2.5">
+            <span className="w-8 h-8 rounded-lg bg-white text-black flex items-center justify-center">
+              <Zap className="w-4 h-4" fill="currentColor" />
+            </span>
             <span className="text-xl font-black italic tracking-tighter">InstaPay</span>
           </div>
           <div className="text-zinc-500 text-sm">
             &copy; {new Date().getFullYear()} InstaPay. All rights reserved.
           </div>
-          <div className="flex gap-6 text-sm font-medium text-zinc-400">
-            <a href="#" className="hover:text-white transition-colors">Privacy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms</a>
-            <a href="#" className="hover:text-white transition-colors">Contact</a>
+          <div className="flex gap-7 text-sm font-medium text-zinc-400">
+            {['Privacy', 'Terms', 'Contact'].map((l) => (
+              <a key={l} href="#" className="transition-colors hover:text-white">{l}</a>
+            ))}
           </div>
         </div>
       </footer>
