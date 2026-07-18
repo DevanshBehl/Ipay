@@ -3,7 +3,7 @@ import {
   ArrowRight, ShieldCheck, Zap,
   Smartphone, Fingerprint, ArrowUpRight, Check, Lock,
 } from 'lucide-react';
-
+import GridCurrent from './GridCurrent';
 /* Reveal-on-scroll: adds `.reveal-in` to every [data-reveal] as it enters view. */
 function useScrollReveal() {
   useEffect(() => {
@@ -64,9 +64,8 @@ function App() {
       {/* Navbar                                                            */}
       {/* ---------------------------------------------------------------- */}
       <nav
-        className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
-          scrolled ? 'glass border-b border-white/10 py-0' : 'bg-transparent border-b border-transparent'
-        }`}
+        className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${scrolled ? 'glass border-b border-white/10 py-0' : 'bg-transparent border-b border-transparent'
+          }`}
       >
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <a href="#top" className="group flex items-center gap-2.5">
@@ -108,6 +107,8 @@ function App() {
         <div className="absolute bottom-0 right-0 w-[36rem] h-[36rem] bg-[radial-gradient(circle,_rgba(255,255,255,0.06)_0%,_transparent_60%)] animate-aurora pointer-events-none" style={{ animationDelay: '-6s' }} />
         {/* Grid lines */}
         <div className="absolute inset-0 pointer-events-none opacity-[0.06] [background-image:linear-gradient(rgba(255,255,255,0.6)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.6)_1px,transparent_1px)] [background-size:64px_64px] [mask-image:radial-gradient(ellipse_at_center,black_20%,transparent_75%)]" />
+        {/* Animated white current sparks tracing the grid lines */}
+        <GridCurrent />
 
         <div className="max-w-7xl mx-auto px-6 w-full grid lg:grid-cols-2 gap-16 items-center relative z-10">
           {/* Copy */}
