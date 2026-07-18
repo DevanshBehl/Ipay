@@ -195,6 +195,26 @@ export default function GridCurrent() {
         }
       }
 
+      // Quiet the sparks over the hero copy so text stays readable.
+      // Sparks still travel through this zone identically — we just fade
+      // their rendered alpha with a soft feathered eraser (destination-out).
+      const wide = w >= 1024;                 // lg: two-column layout, copy on the left
+      const cx = wide ? w * 0.26 : w * 0.5;
+      const cy = h * 0.5;
+      const rx = wide ? w * 0.3 : w * 0.62;
+      const ry = wide ? h * 0.4 : h * 0.34;
+      ctx.save();
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.translate(cx, cy);
+      ctx.scale(rx, ry);
+      const eraser = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
+      eraser.addColorStop(0, 'rgba(0,0,0,0.9)');    // strongest fade over the text
+      eraser.addColorStop(0.55, 'rgba(0,0,0,0.65)');
+      eraser.addColorStop(1, 'rgba(0,0,0,0)');       // feather out — full sparks resume
+      ctx.fillStyle = eraser;
+      ctx.fillRect(-1, -1, 2, 2);
+      ctx.restore();
+
       raf = requestAnimationFrame(frame);
     };
 
