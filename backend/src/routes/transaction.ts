@@ -9,6 +9,8 @@ router.post('/send', async (req, res) => {
   try {
     const { senderUserId, senderBankAccountId, receiverUpiId, amount, upiPin } = req.body;
 
+    if (senderUserId !== req.userId) return res.status(403).json({ error: 'Forbidden' });
+
     const sender = await User.findById(senderUserId);
     const receiver = await User.findOne({ upiId: receiverUpiId });
 
@@ -16,7 +18,7 @@ router.post('/send', async (req, res) => {
       return res.status(404).json({ error: 'Sender or receiver not found' });
     }
 
-    if (!sender.upiPin || sender.upiPin !== upiPin) {
+    if (!sender.upiPin || !(await sender.comparePin(upiPin))) {
       return res.status(401).json({ error: 'Invalid UPI PIN' });
     }
 

@@ -1,0 +1,27 @@
+this is a complex project related to fintech and specially regarding the UPI transactions and makeing hte flow of the upi transactions easier  so basically we are building a platform that will help us even do the transactions from our browser also 
+
+right now the issue is that when me make a purchase from teh browser and want to make a payment via upi everytime we need to enter our upi id on the laptop and then the payment gateway on the laptop sends the requests to the mobile app and then the user enters the upi pin to approve the transactions there is a lot of effort in this and somethimes evene the network makes this process headache 
+
+and on the other hand in the crypto world there exits the wallet like phantom and metamasks where there are dApps that check teh window.ethereum or window.solana like properties injected by the wallets and then the dAPP gets conected to the wallet directly to make the transactions but this same cant me implemented as the security flow infrastructre and custody of the assests. are completely different in the upi and decentralised crypto worls as here the transactions occur under the guidelines of the central authority that is the reserved bank of india and npci 
+
+so what i thought to take a inspiration from 3 different services to engineer a new style of payment for services like upi . this is a simulated prototype for such style of payments no real bank accounts and money is involved in this project 
+
+1st Service - there is a mobile app - that is similar to the any other upi app like paytm or phonepe that takes a noumber or upi id and user has to entet the amount and then the pin to complete the transaction similarly it scans the qr code to pay and then there is a show balance features and add multiple account features 
+
+2nd service - whatsapp web login process (here we nothing have to do with whatsapp but use its whatsapp web login process) as whatsapp works perfectly on mobile but to use it on your laptop there is a feature that there is a qr code on whatasapp web that you scans from you logged in whatsapp mobile app to validate the request to login the whatsapp on web application and manage the session as from your whatsapp mobile app you can see where you whatsapp is still logged in this is for the security and safety of the user
+
+3rd service i took inspiration from the wallets like phantom where we can sign transactions as these wallets injects the properties of the window object in the browser and on the other hand the Dapp like uniswap looks for the window.solana or window.ethereum object and coonect to the wallet and then from the wallet we can sign and send transactions 
+
+
+Now the issues to build this project traditonal upi apps dont have this session and valodation session like feature for browser extensions and neither there exist any upi extenison wallet and also the payment gateways like razorpay , stripe , paytm ipayy dont look for any window.upi object to connect any extension wallet to make transaction easier 
+
+so to engineer this prototype we need 3 porjects 
+
+1 a normal simultaing upi app (some implementation is already build and simulating transactions have been working) and now main thing this app lets you scan the wallet browser qr and connect the session , and also it stores the record for where the wallets are still logged in and any time we can terminate the session from the mobile wallet itself as we click the terminate session button from mobile the browser extension will get logged out immediately and will start again showing a qr to pair it again as a nacent wallet 
+
+2 a extension based wallet(frontend was coded for this still no backend integration) where the concept is that once the session is established you need to enter your login pin (4 digit ) on the browser extension and then you can access. the browser but the main cluth is here as in the crypto wallet there are seed phrase and the mnemonics and private keys and passwords are stroed in the local storage in the chorme browser but this time its different in our case as our wallet will have a proper centralised backend and the login pin , upi pin and any confidential details are still not stored in the localstorage and everything is stored in the central bank backend server and this wallet extension also injects window.upi object to connect with the payment gateways and be able to communicate to receive transaction request , complete it and send the transaction complete acknowledgement .
+
+3 a payment gateway only for upi that looks for the window.upi object and processes the transaction request to the extension wallet and a pop up pops in the wallet like it occurs on the phantom when uniswaps want to make a transaction ad then it completes the transaction and receive the acknowledgement and display the payment confirmation on browser window 
+
+the flow of payment is everytime you open a wallet you need to enter a login pin to check whether the user is authenticated or someone is trying to make a malicious entry 
+and to complete transaction upi pin same as mobile app is required . in crypto the keys are stored in the local storage but here everything is stored in the centralised server . nothing is stored in local storage except for session detials if required for browser session and if someone tries to access the details from browser it wont be much of a use as it can only access the session deatils and nothing  else    

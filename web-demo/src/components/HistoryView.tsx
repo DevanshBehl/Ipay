@@ -1,20 +1,10 @@
+import { transactions } from '../data/mock';
+import { formatSignedINR } from '../utils/format';
+
 interface HistoryViewProps {
   open: boolean;
   onClose: () => void;
 }
-
-const transactions = [
-  { name: 'Henry James', time: 'Today, 10:30 AM', amount: '+$450.00', type: 'Deposit', positive: true, img: 'https://i.pravatar.cc/150?u=1' },
-  { name: 'Chris Michael', time: 'Today, 10:00 AM', amount: '+$250.00', type: 'Deposit', positive: true, img: 'https://i.pravatar.cc/150?u=2' },
-  { name: 'Spotify Premium', time: 'Today, 08:12 AM', amount: '-$9.99', type: 'Subscription', positive: false, img: 'https://i.pravatar.cc/150?u=10' },
-  { name: 'Dinesh Maisha', time: 'Yesterday', amount: '+$340.00', type: 'Deposit', positive: true, img: 'https://i.pravatar.cc/150?u=3' },
-  { name: 'Amazon', time: 'Yesterday', amount: '-$128.40', type: 'Shopping', positive: false, img: 'https://i.pravatar.cc/150?u=11' },
-  { name: 'Sophia Turner', time: 'Jul 16', amount: '-$75.00', type: 'Transfer', positive: false, img: 'https://i.pravatar.cc/150?u=4' },
-  { name: 'Uber', time: 'Jul 16', amount: '-$21.60', type: 'Travel', positive: false, img: 'https://i.pravatar.cc/150?u=12' },
-  { name: 'Marcus Lee', time: 'Jul 15', amount: '+$1,200.00', type: 'Salary', positive: true, img: 'https://i.pravatar.cc/150?u=5' },
-  { name: 'Netflix', time: 'Jul 14', amount: '-$15.49', type: 'Subscription', positive: false, img: 'https://i.pravatar.cc/150?u=13' },
-  { name: 'Olivia Brown', time: 'Jul 13', amount: '+$90.00', type: 'Deposit', positive: true, img: 'https://i.pravatar.cc/150?u=6' },
-];
 
 export function HistoryView({ open, onClose }: HistoryViewProps) {
   return (
@@ -61,7 +51,7 @@ export function HistoryView({ open, onClose }: HistoryViewProps) {
               </div>
             </div>
             <div className="flex flex-col items-end">
-              <span className={`font-semibold text-base ${tx.positive ? 'text-[#8fb400]' : 'text-white'}`}>{tx.amount}</span>
+              <span className={`font-semibold text-base ${tx.positive ? 'text-[#8fb400]' : 'text-white'}`}>{formatSignedINR(tx.amount, tx.positive)}</span>
               <span className="text-zinc-500 text-xs">{tx.type}</span>
             </div>
           </div>

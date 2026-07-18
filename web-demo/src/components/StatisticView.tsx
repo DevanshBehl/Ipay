@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { statistics } from '../data/mock';
+import { formatINR } from '../utils/format';
 
 export function StatisticView() {
   const [primaryTab, setPrimaryTab] = useState<'Daily' | 'Weekly' | 'Monthly'>('Daily');
@@ -38,7 +40,7 @@ export function StatisticView() {
           <div className="flex items-start justify-between mb-6">
             <div className="flex flex-col">
               <span className="text-zinc-400 text-sm mb-1">Total</span>
-              <span className="text-4xl font-bold tracking-tight">$67,545.23</span>
+              <span className="text-4xl font-bold tracking-tight">{formatINR(statistics.total)}</span>
             </div>
             <button className="w-10 h-10 rounded-full bg-[#000000] flex items-center justify-center text-[#FFFFFF]">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
@@ -62,21 +64,13 @@ export function StatisticView() {
           <div className="relative h-40 w-full flex items-end justify-between px-2 pt-4">
             {/* Background Grid Lines */}
             <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-8 pt-4">
-              <div className="w-full border-b border-zinc-800/50 border-dashed relative"><span className="absolute -top-3 -left-2 text-[10px] text-zinc-500">$30K</span></div>
-              <div className="w-full border-b border-zinc-800/50 border-dashed relative"><span className="absolute -top-3 -left-2 text-[10px] text-zinc-500">$20K</span></div>
-              <div className="w-full border-b border-zinc-800/50 border-dashed relative"><span className="absolute -top-3 -left-2 text-[10px] text-zinc-500">$10K</span></div>
-              <div className="w-full border-b border-zinc-800/50 border-dashed relative"><span className="absolute -top-3 -left-2 text-[10px] text-zinc-500">$0K</span></div>
+              {statistics.gridLabels.map(label => (
+                <div key={label} className="w-full border-b border-zinc-800/50 border-dashed relative"><span className="absolute -top-3 -left-2 text-[10px] text-zinc-500">{label}</span></div>
+              ))}
             </div>
 
             {/* Bars */}
-            {[
-              { label: 'Jan', height: '40%' },
-              { label: 'Feb', height: '55%' },
-              { label: 'Mar', height: '85%', active: true },
-              { label: 'Apr', height: '45%' },
-              { label: 'May', height: '60%' },
-              { label: 'Jun', height: '35%' },
-            ].map((bar, i) => (
+            {statistics.bars.map((bar, i) => (
               <div key={i} className="flex flex-col items-center z-10 w-8">
                 <div 
                   className={`w-full rounded-t-lg transition-all duration-500 ${bar.active ? 'bg-[#FFFFFF] shadow-[0_0_15px_rgba(255,255,255,0.5)]' : 'bg-[#000000]'}`}
@@ -96,7 +90,7 @@ export function StatisticView() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
           </div>
           <span className="text-zinc-400 text-xs mb-1">Total Withdrawal</span>
-          <span className="text-lg font-bold">$ 60,500</span>
+          <span className="text-lg font-bold">{formatINR(statistics.totalWithdrawal, 0)}</span>
         </div>
 
         <div className="flex-1 bg-[#1B1D22] rounded-3xl p-5 border border-[#000000] flex flex-col">
@@ -104,7 +98,7 @@ export function StatisticView() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           </div>
           <span className="text-zinc-400 text-xs mb-1">Total Deposit</span>
-          <span className="text-lg font-bold">$ 20,500</span>
+          <span className="text-lg font-bold">{formatINR(statistics.totalDeposit, 0)}</span>
         </div>
       </div>
       

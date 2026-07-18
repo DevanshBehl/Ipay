@@ -1,26 +1,10 @@
+import { notifications } from '../data/mock';
+import { formatSignedINR } from '../utils/format';
+
 interface NotificationViewProps {
   open: boolean;
   onClose: () => void;
 }
-
-type Notif = {
-  kind: 'sent' | 'received';
-  title: string;
-  detail: string;
-  amount: string;
-  time: string;
-  unread: boolean;
-};
-
-const notifications: Notif[] = [
-  { kind: 'received', title: 'Payment Received', detail: 'From Henry James', amount: '+$450.00', time: 'Just now', unread: true },
-  { kind: 'sent', title: 'Payment Successful', detail: 'To Sophia Turner', amount: '-$75.00', time: '5 min ago', unread: true },
-  { kind: 'received', title: 'Payment Received', detail: 'From Chris Michael', amount: '+$250.00', time: '1 hour ago', unread: true },
-  { kind: 'sent', title: 'Payment Successful', detail: 'To Amazon', amount: '-$128.40', time: 'Yesterday', unread: false },
-  { kind: 'received', title: 'Payment Received', detail: 'From Marcus Lee — Salary', amount: '+$1,200.00', time: 'Jul 15', unread: false },
-  { kind: 'sent', title: 'Payment Successful', detail: 'To Uber', amount: '-$21.60', time: 'Jul 16', unread: false },
-  { kind: 'received', title: 'Payment Received', detail: 'From Olivia Brown', amount: '+$90.00', time: 'Jul 13', unread: false },
-];
 
 function ReceivedIcon() {
   return (
@@ -104,7 +88,7 @@ export function NotificationView({ open, onClose }: NotificationViewProps) {
                 <span className="text-zinc-500 text-xs truncate">{n.detail}</span>
               </div>
               <div className="flex flex-col items-end shrink-0">
-                <span className={`font-semibold text-base ${received ? 'text-[#8fb400]' : 'text-white'}`}>{n.amount}</span>
+                <span className={`font-semibold text-base ${received ? 'text-[#8fb400]' : 'text-white'}`}>{formatSignedINR(n.amount, received)}</span>
                 <span className="text-zinc-500 text-xs">{n.time}</span>
               </div>
             </div>

@@ -88,10 +88,11 @@ router.get('/:id', async (req, res) => {
 router.post('/balance', async (req, res) => {
   try {
     const { userId, bankAccountId, upiPin } = req.body;
+    if (userId !== req.userId) return res.status(403).json({ error: 'Forbidden' });
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    if (!user.upiPin || user.upiPin !== upiPin) {
+    if (!user.upiPin || !(await user.comparePin(upiPin))) {
       return res.status(401).json({ error: 'Invalid UPI PIN' });
     }
 

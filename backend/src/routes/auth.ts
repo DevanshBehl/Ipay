@@ -1,12 +1,15 @@
 import { Router } from 'express';
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import twilio from 'twilio';
 import nodemailer from 'nodemailer';
 import User from '../models/User';
+import Otp from '../models/Otp';
+import { requireAuth } from '../middleware/auth';
 
 const router = Router();
-const otps = new Map<string, string>(); // In-memory OTP storage for simplicity
+const OTP_TTL_MS = 5 * 60 * 1000; // OTP valid for 5 minutes
 
 const twilioClient = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN 
   ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN) 
@@ -25,8 +28,16 @@ router.post('/send-otp', async (req, res) => {
 
     // Generate random 6-digit OTP
     const otp = crypto.randomInt(100000, 999999).toString();
-    otps.set(mobileNumber, otp); // Still keying by mobileNumber for simplicity
 
+    // Persist a hashed, expiring OTP (replaces any prior OTP for this number).
+    const codeHash = await bcrypt.hash(otp, 10);
+    await Otp.findOneAndUpdate(
+      { mobileNumber },
+      { mobileNumber, email, codeHash, expiresAt: new Date(Date.now() + OTP_TTL_MS) },
+      { upsert: true, new: true }
+    );
+
+    // Dev-only: remove before any real deployment.
     console.log(`OTP for ${mobileNumber} and ${email} is ${otp}`);
 
     // Try sending real SMS if Twilio is configured
@@ -85,11 +96,15 @@ router.post('/send-otp', async (req, res) => {
 router.post('/verify-otp', async (req, res) => {
   try {
     const { mobileNumber, email, otp } = req.body;
-    if (otps.get(mobileNumber) !== otp) {
+
+    const otpDoc = await Otp.findOne({ mobileNumber });
+    // Missing or past-expiry (TTL cleanup can lag) counts as invalid.
+    if (!otpDoc || otpDoc.expiresAt.getTime() < Date.now() || !(await bcrypt.compare(otp, otpDoc.codeHash))) {
       return res.status(400).json({ error: 'Invalid or expired OTP' });
     }
-    
-    otps.delete(mobileNumber);
+
+    // Single-use: consume the OTP on success.
+    await Otp.deleteOne({ _id: otpDoc._id });
 
     let user = await User.findOne({ mobileNumber });
     let isNewUser = false;
@@ -123,9 +138,10 @@ router.post('/verify-otp', async (req, res) => {
   }
 });
 
-router.post('/setup-profile', async (req, res) => {
+router.post('/setup-profile', requireAuth, async (req, res) => {
   try {
     const { userId, name, upiPin } = req.body;
+    if (userId !== req.userId) return res.status(403).json({ error: 'Forbidden' });
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
@@ -142,9 +158,10 @@ router.post('/setup-profile', async (req, res) => {
   }
 });
 
-router.post('/set-pin', async (req, res) => {
+router.post('/set-pin', requireAuth, async (req, res) => {
   try {
     const { userId, upiPin } = req.body;
+    if (userId !== req.userId) return res.status(403).json({ error: 'Forbidden' });
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
@@ -157,9 +174,10 @@ router.post('/set-pin', async (req, res) => {
   }
 });
 
-router.get('/user/:id', async (req, res) => {
+router.get('/user/:id', requireAuth, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
+    // Never expose the PIN hash to clients.
+    const user = await User.findById(req.params.id).select('-upiPin');
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json(user);
   } catch (error) {
@@ -167,14 +185,14 @@ router.get('/user/:id', async (req, res) => {
   }
 });
 
-router.get('/users', async (req, res) => {
+router.get('/users', requireAuth, async (req, res) => {
   try {
     const { exclude } = req.query; // e.g. /api/auth/users?exclude=userId
     let query = {};
     if (exclude) {
       query = { _id: { $ne: exclude } };
     }
-    const users = await User.find(query).select('-__v');
+    const users = await User.find(query).select('-__v -upiPin');
     res.json(users);
   } catch (error) {
     console.error(error);

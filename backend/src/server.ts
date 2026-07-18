@@ -8,13 +8,14 @@ dotenv.config();
 import authRoutes from './routes/auth';
 import bankRoutes from './routes/bank';
 import transactionRoutes from './routes/transaction';
+import { requireAuth } from './middleware/auth';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 // Connect to MongoDB
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/ipay_simulation';
 
 mongoose.connect(MONGO_URI)
@@ -28,6 +29,8 @@ mongoose.connect(MONGO_URI)
     console.error('MongoDB connection error:', err);
   });
 
+// /api/auth mixes public (send-otp, verify-otp) and protected routes, so it
+// guards each protected route internally. Bank and transaction are all protected.
 app.use('/api/auth', authRoutes);
-app.use('/api/bank', bankRoutes);
-app.use('/api/transaction', transactionRoutes);
+app.use('/api/bank', requireAuth, bankRoutes);
+app.use('/api/transaction', requireAuth, transactionRoutes);

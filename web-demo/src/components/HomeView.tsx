@@ -1,3 +1,6 @@
+import { currentUser, primaryCard } from '../data/mock';
+import { formatINR } from '../utils/format';
+
 interface HomeViewProps {
   onOpenNotifications?: () => void;
 }
@@ -10,11 +13,11 @@ export function HomeView({ onOpenNotifications }: HomeViewProps) {
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full overflow-hidden bg-zinc-800">
             {/* Using a placeholder avatar image */}
-            <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Profile" className="w-full h-full object-cover" />
+            <img src={currentUser.avatar} alt="Profile" className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col">
-            <span className="text-zinc-400 text-xs">Good Morning</span>
-            <span className="font-semibold text-lg leading-tight">Sajibur Rahman</span>
+            <span className="text-zinc-400 text-xs">{currentUser.greeting}</span>
+            <span className="font-semibold text-lg leading-tight">{currentUser.name}</span>
           </div>
         </div>
         <button
@@ -58,7 +61,7 @@ export function HomeView({ onOpenNotifications }: HomeViewProps) {
             <span>****</span>
             <span>****</span>
             <span>****</span>
-            <span className="text-black font-bold">5466</span>
+            <span className="text-black font-bold">{primaryCard.last4}</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1 opacity-50"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle><line x1="1" y1="1" x2="23" y2="23"></line></svg>
           </div>
 
@@ -66,7 +69,7 @@ export function HomeView({ onOpenNotifications }: HomeViewProps) {
           <div className="flex items-end justify-between z-10 mt-auto">
             <div className="flex flex-col">
               <span className="text-black/60 text-xs font-medium mb-1">Balance</span>
-              <span className="text-[28px] font-bold tracking-tight leading-none">$786,898,67.00</span>
+              <span className="text-[28px] font-bold tracking-tight leading-none">{formatINR(primaryCard.balance)}</span>
             </div>
             <div className="w-10 h-8 rounded border border-black/20 flex flex-col items-center justify-evenly bg-gradient-to-br from-white/40 to-white/10 overflow-hidden">
                 <div className="w-full h-[1px] bg-black/20"></div>

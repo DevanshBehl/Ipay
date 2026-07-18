@@ -1,20 +1,13 @@
 import { useState } from 'react';
+import { defaultSendAmount, quickAmounts, sendContacts as contacts } from '../data/mock';
+import { formatINR } from '../utils/format';
 
 interface SendMoneyViewProps {
   onBack: () => void;
 }
 
 export function SendMoneyView({ onBack }: SendMoneyViewProps) {
-  const [amount, setAmount] = useState('6,342.49');
-  
-  const contacts = [
-    { id: 1, name: 'Mahesh', img: 'https://i.pravatar.cc/150?u=4', selected: false },
-    { id: 2, name: 'Dinesh', img: 'https://i.pravatar.cc/150?u=5', selected: true },
-    { id: 3, name: 'Roshan', img: 'https://i.pravatar.cc/150?u=6', selected: false },
-    { id: 4, name: 'Pradeep', img: 'https://i.pravatar.cc/150?u=7', selected: false },
-  ];
-
-  const quickAmounts = ['$50', '$100', '$500', '$1000', '$1500'];
+  const [amount, setAmount] = useState(defaultSendAmount);
 
   const keypad = [
     '1', '2', '3',
@@ -88,7 +81,7 @@ export function SendMoneyView({ onBack }: SendMoneyViewProps) {
 
             {/* Amount */}
             <div className="flex items-center justify-center mb-2">
-              <span className="text-4xl font-bold tracking-tight">$</span>
+              <span className="text-4xl font-bold tracking-tight">₹</span>
               <span className="text-4xl font-bold tracking-tight relative">
                 {amount.split('.')[0]}
                 <span className="text-white relative mx-0.5">
@@ -106,7 +99,7 @@ export function SendMoneyView({ onBack }: SendMoneyViewProps) {
         <div className="px-6 flex items-center gap-2 mb-6 overflow-x-auto no-scrollbar">
           {quickAmounts.map(a => (
             <button key={a} className="px-5 py-2.5 rounded-full bg-[#1B1D22] border border-[#000000] text-sm font-semibold flex-shrink-0 hover:bg-[#000000] transition-colors">
-              {a}
+              {formatINR(a, 0)}
             </button>
           ))}
         </div>
