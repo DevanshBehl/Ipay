@@ -173,82 +173,119 @@ function App() {
           <div
             data-reveal
             style={{ transitionDelay: '200ms' }}
-            className="relative mx-auto w-full max-w-[300px] lg:max-w-none [perspective:1400px]"
+            className="relative mx-auto lg:justify-self-end w-[300px] shrink-0 [perspective:1600px]"
           >
+            {/* Soft floor shadow */}
+            <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-3/4 h-12 bg-black rounded-[50%] blur-2xl opacity-80 pointer-events-none" />
+
             <div
               ref={phoneRef}
               className="relative animate-float"
               style={{
                 transform: `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)`,
                 transformStyle: 'preserve-3d',
-                transition: 'transform 0.25s ease-out',
+                transition: 'transform 0.3s ease-out',
               }}
             >
               {/* Rotating conic halo */}
-              <div className="absolute -inset-6 rounded-[52px] blur-2xl opacity-40 conic-ring animate-spin-slow pointer-events-none" />
+              <div className="absolute -inset-3 rounded-[58px] blur-2xl opacity-25 conic-ring animate-spin-slow pointer-events-none" />
 
-              <div className="relative rounded-[42px] border-[9px] border-zinc-900 bg-black overflow-hidden shadow-2xl shadow-black/60 aspect-[9/19]">
-                {/* Notch */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-black rounded-b-2xl z-20" />
-                {/* Status bar */}
-                <div className="h-8 bg-black flex justify-between items-center px-6 pt-2 relative z-10">
-                  <span className="text-[10px] font-medium">9:41</span>
-                  <div className="w-3 h-2.5 border border-white rounded-[2px]" />
-                </div>
+              {/* Titanium outer frame */}
+              <div className="relative rounded-[52px] p-[10px] bg-gradient-to-b from-zinc-500/90 via-zinc-800 to-zinc-600/90 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9)]">
+                {/* Side buttons */}
+                <div className="absolute -left-[2px] top-[112px] w-[3px] h-7 bg-zinc-700 rounded-l-sm" />
+                <div className="absolute -left-[2px] top-[150px] w-[3px] h-12 bg-zinc-700 rounded-l-sm" />
+                <div className="absolute -left-[2px] top-[196px] w-[3px] h-12 bg-zinc-700 rounded-l-sm" />
+                <div className="absolute -right-[2px] top-[168px] w-[3px] h-16 bg-zinc-700 rounded-r-sm" />
 
-                <div className="p-5 flex flex-col h-full bg-black">
-                  <div className="flex items-center gap-3 mb-7">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-b from-zinc-700 to-zinc-900" />
-                    <div className="flex flex-col">
-                      <span className="text-zinc-500 text-[10px]">Good Morning</span>
-                      <span className="font-semibold text-sm">Sajibur Rahman</span>
+                {/* Inner black bezel */}
+                <div className="rounded-[44px] bg-black p-[3px]">
+                  {/* Screen */}
+                  <div className="relative rounded-[42px] overflow-hidden bg-black aspect-[9/19.3] flex flex-col">
+                    {/* Dynamic island */}
+                    <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-[86px] h-[26px] bg-black rounded-full z-30 flex items-center justify-end pr-2.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
                     </div>
-                  </div>
+                    {/* Screen glare */}
+                    <div className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-br from-white/[0.07] via-transparent to-transparent" />
+                    {/* Home indicator */}
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-24 h-1 rounded-full bg-white/40 z-30" />
 
-                  {/* Silver monochrome card */}
-                  <div
-                    className="w-full p-5 rounded-2xl relative overflow-hidden flex flex-col justify-between mb-6 shadow-xl"
-                    style={{ minHeight: '176px', background: 'linear-gradient(135deg, #ececee 0%, #c7c7cc 45%, #97979d 100%)' }}
-                  >
-                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/50 rounded-full blur-2xl pointer-events-none" />
-                    <div className="flex items-center justify-between z-10">
-                      <div className="text-xl font-black italic tracking-tighter text-zinc-900">VISA</div>
-                      <div className="w-8 h-6 rounded border border-black/20 bg-gradient-to-br from-white/60 to-white/10" />
-                    </div>
-                    <div className="flex items-center gap-2 mt-4 mb-2 z-10 text-black/70 font-mono text-xs tracking-widest">
-                      <span>****</span><span>****</span><span>****</span><span className="font-bold text-black">5466</span>
-                    </div>
-                    <div className="flex flex-col z-10 mt-auto">
-                      <span className="text-black/50 text-[10px] font-medium mb-1">Balance</span>
-                      <span className="text-xl font-bold text-black tracking-tight leading-none">$7,868,986.00</span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-4 gap-3 mb-6">
-                    {[Wallet, Send, Zap, PieChart].map((Icon, i) => (
-                      <div key={i} className="flex flex-col items-center">
-                        <div className="w-12 h-12 rounded-[18px] bg-gradient-to-b from-zinc-800 to-zinc-900 border border-zinc-700/60 flex items-center justify-center text-zinc-100 shadow-md">
-                          <Icon className="w-5 h-5" />
+                    {/* Status bar */}
+                    <div className="flex items-center justify-between px-6 pt-3.5 pb-1 text-white relative z-10">
+                      <span className="text-[11px] font-semibold tracking-wide">9:41</span>
+                      <div className="flex items-center gap-1.5">
+                        <svg width="15" height="11" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+                        <svg width="14" height="11" viewBox="0 0 16 12" fill="currentColor"><path d="M8 2.5c2.3 0 4.4.9 6 2.4l1.4-1.5A11 11 0 0 0 8 .5 11 11 0 0 0 .6 3.4L2 4.9A8.6 8.6 0 0 1 8 2.5Zm0 4c1.2 0 2.3.5 3.1 1.3l1.4-1.5A6.6 6.6 0 0 0 8 4.5a6.6 6.6 0 0 0-4.5 1.8l1.4 1.5A4.6 4.6 0 0 1 8 6.5Zm0 4 2-2.1A2.7 2.7 0 0 0 8 8.5c-.8 0-1.5.3-2 .9L8 10.5Z"/></svg>
+                        <div className="flex items-center gap-0.5">
+                          <div className="w-[18px] h-[10px] rounded-[3px] border border-white/70 p-[1.5px]"><div className="w-full h-full bg-white rounded-[1px]" /></div>
+                          <div className="w-[1.5px] h-[4px] bg-white/70 rounded-r-sm" />
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    </div>
 
-                  <div className="flex-1 bg-[#131316] rounded-2xl p-4 border border-white/5">
-                    <span className="text-sm font-medium mb-3 block">Transactions</span>
-                    <div className="space-y-3">
-                      {[['Henry James', '+$450.00'], ['Chris Michael', '+$250.00']].map(([n, a], i) => (
-                        <div key={i} className="flex justify-between items-center">
-                          <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-b from-zinc-700 to-zinc-800" />
-                            <div className="flex flex-col">
-                              <span className="text-xs font-medium">{n}</span>
-                              <span className="text-[9px] text-zinc-500">10:30 AM</span>
+                    {/* App content */}
+                    <div className="flex-1 min-h-0 flex flex-col px-4 pt-3 pb-6 bg-black">
+                      <div className="flex items-center gap-2.5 mb-4">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-b from-zinc-600 to-zinc-800" />
+                        <div className="flex flex-col">
+                          <span className="text-zinc-500 text-[10px]">Good Morning</span>
+                          <span className="font-semibold text-[13px]">Sajibur Rahman</span>
+                        </div>
+                        <div className="ml-auto w-8 h-8 rounded-full border border-zinc-700 flex items-center justify-center">
+                          <div className="w-1 h-1 rounded-full bg-white" />
+                        </div>
+                      </div>
+
+                      {/* Silver monochrome card */}
+                      <div
+                        className="w-full p-4 rounded-2xl relative overflow-hidden flex flex-col justify-between shadow-lg shrink-0"
+                        style={{ height: '158px', background: 'linear-gradient(135deg, #f0f0f2 0%, #ccccd2 45%, #9a9aa0 100%)' }}
+                      >
+                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/60 rounded-full blur-2xl pointer-events-none" />
+                        <div className="flex items-center justify-between z-10">
+                          <div className="text-lg font-black italic tracking-tighter text-zinc-900">VISA</div>
+                          <div className="w-8 h-6 rounded-md border border-black/15 bg-gradient-to-br from-white/70 to-white/10" />
+                        </div>
+                        <div className="flex items-center gap-2 z-10 text-black/70 font-mono text-[11px] tracking-widest">
+                          <span>••••</span><span>••••</span><span>••••</span><span className="font-bold text-black">5466</span>
+                        </div>
+                        <div className="flex flex-col z-10">
+                          <span className="text-black/50 text-[9px] font-medium mb-0.5">Balance</span>
+                          <span className="text-lg font-bold text-black tracking-tight leading-none">$7,868,986.00</span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-4 gap-2 my-4 shrink-0">
+                        {[Wallet, Send, Zap, PieChart].map((Icon, i) => (
+                          <div key={i} className="flex flex-col items-center">
+                            <div className="w-11 h-11 rounded-2xl bg-gradient-to-b from-zinc-800 to-zinc-900 border border-zinc-700/60 flex items-center justify-center text-zinc-100 shadow-md">
+                              <Icon className="w-[18px] h-[18px]" />
                             </div>
                           </div>
-                          <span className="text-xs font-semibold">{a}</span>
+                        ))}
+                      </div>
+
+                      <div className="flex-1 min-h-0 bg-[#131316] rounded-2xl p-3.5 border border-white/5 overflow-hidden">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-[13px] font-medium">Transactions</span>
+                          <span className="text-[10px] text-zinc-500">See all</span>
                         </div>
-                      ))}
+                        <div className="space-y-3">
+                          {[['Henry James', '+$450.00'], ['Chris Michael', '+$250.00'], ['Ava Patel', '+$120.00']].map(([n, a], i) => (
+                            <div key={i} className="flex justify-between items-center">
+                              <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-full bg-gradient-to-b from-zinc-700 to-zinc-800" />
+                                <div className="flex flex-col">
+                                  <span className="text-[11px] font-medium">{n}</span>
+                                  <span className="text-[9px] text-zinc-500">10:30 AM</span>
+                                </div>
+                              </div>
+                              <span className="text-[11px] font-semibold">{a}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
