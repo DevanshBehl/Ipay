@@ -1,68 +1,55 @@
-import { useState } from 'react'
-import axios from 'axios'
-import './App.css'
+import { useState } from 'react';
+import { LandingPage } from './components/LandingPage';
+import { HomeView } from './components/HomeView';
+import { StatisticView } from './components/StatisticView';
+import { SendMoneyView } from './components/SendMoneyView';
+import { MenuView } from './components/MenuView';
+import { HistoryView } from './components/HistoryView';
+import { NotificationView } from './components/NotificationView';
+import { BottomNav, type TabId } from './components/BottomNav';
+
+type Stage = 'setup' | 'wallet';
 
 function App() {
-  const [formData, setFormData] = useState({
-    accountNumber: '',
-    accountHolderName: '',
-    bankName: '',
-    balance: '',
-    registeredMobileNumber: ''
-  });
-  const [message, setMessage] = useState('');
+  const [stage, setStage] = useState<Stage>('setup');
+  const [activeTab, setActiveTab] = useState<TabId>('home');
+  const [showSend, setShowSend] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await axios.post('http://10.92.133.78:5001/api/bank/create', {
-        ...formData,
-        balance: Number(formData.balance)
-      });
-      setMessage('Bank account created successfully!');
-      setFormData({ accountNumber: '', accountHolderName: '', bankName: '', balance: '', registeredMobileNumber: '' });
-    } catch (err) {
-      console.error(err);
-      setMessage('Failed to create account.');
+  const handleTabChange = (tab: TabId) => {
+    if (tab === 'history') {
+      // The center clock button toggles the transaction-history panel.
+      setShowHistory(prev => !prev);
+      return;
     }
+    setActiveTab(tab);
   };
 
   return (
-    <div className="container">
-      <h1>InstaPay Demo Bank Setup</h1>
-      <p>Use this to populate the demo database with bank accounts.</p>
-      
-      {message && <p className="message">{message}</p>}
+    <div className="h-full w-full">
+      {/* Extension popup surface — fills the 380x600 popup */}
+      <div className="relative w-full h-full bg-[#000000] overflow-hidden flex flex-col">
+        {stage === 'setup' ? (
+          <LandingPage onSetupComplete={() => setStage('wallet')} />
+        ) : showSend ? (
+          <SendMoneyView onBack={() => setShowSend(false)} />
+        ) : (
+          <>
+            {activeTab === 'home' && <HomeView onOpenNotifications={() => setShowNotifications(true)} />}
+            {activeTab === 'statistic' && <StatisticView />}
+            {activeTab === 'menu' && <MenuView onDisconnect={() => setStage('setup')} />}
 
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>16-Digit Account Number:</label>
-          <input name="accountNumber" value={formData.accountNumber} onChange={handleChange} required maxLength={16} minLength={16} />
-        </div>
-        <div>
-          <label>Account Holder Name:</label>
-          <input name="accountHolderName" value={formData.accountHolderName} onChange={handleChange} required />
-        </div>
-        <div>
-          <label>Bank Name:</label>
-          <input name="bankName" value={formData.bankName} onChange={handleChange} required />
-        </div>
-        <div>
-          <label>Starting Balance:</label>
-          <input name="balance" type="number" value={formData.balance} onChange={handleChange} required />
-        </div>
-        <div>
-          <label>Registered Mobile Number:</label>
-          <input name="registeredMobileNumber" value={formData.registeredMobileNumber} onChange={handleChange} required />
-        </div>
-        <button type="submit">Create Account</button>
-      </form>
+            <BottomNav activeTab={activeTab} onTabChange={handleTabChange} historyOpen={showHistory} />
+
+            <HistoryView open={showHistory} onClose={() => setShowHistory(false)} />
+
+            <NotificationView open={showNotifications} onClose={() => setShowNotifications(false)} />
+          </>
+        )}
+      </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
