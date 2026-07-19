@@ -8,7 +8,9 @@ dotenv.config();
 import authRoutes from './routes/auth';
 import bankRoutes from './routes/bank';
 import transactionRoutes from './routes/transaction';
+import sessionRoutes from './routes/session';
 import { requireAuth } from './middleware/auth';
+import { initSessionSocket } from './realtime/sessionSocket';
 
 const app = express();
 app.use(cors());
@@ -21,9 +23,12 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/ipay_simul
 mongoose.connect(MONGO_URI)
   .then(() => {
     console.log('Connected to MongoDB');
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
+    // Raw WebSocket server shares the HTTP server/port for instant session
+    // revocation (ws://localhost in dev, wss:// behind TLS in production).
+    initSessionSocket(server);
   })
   .catch((err) => {
     console.error('MongoDB connection error:', err);
@@ -31,6 +36,9 @@ mongoose.connect(MONGO_URI)
 
 // /api/auth mixes public (send-otp, verify-otp) and protected routes, so it
 // guards each protected route internally. Bank and transaction are all protected.
+// /api/auth and /api/session mix public and protected routes, so they guard
+// each protected route internally. Bank and transaction are all protected.
 app.use('/api/auth', authRoutes);
+app.use('/api/session', sessionRoutes);
 app.use('/api/bank', requireAuth, bankRoutes);
 app.use('/api/transaction', requireAuth, transactionRoutes);

@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export type SessionStatus = 'PENDING' | 'ACTIVE' | 'TERMINATED';
 
 export interface ISession extends Document {
-  userId: mongoose.Types.ObjectId;
+  userId?: mongoose.Types.ObjectId;
   sessionToken: string;
   deviceLabel: string;
   status: SessionStatus;
@@ -13,8 +13,9 @@ export interface ISession extends Document {
 }
 
 const SessionSchema: Schema = new Schema({
-  // Owner of the browser session (set once the mobile app approves pairing).
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+  // Owner of the browser session. Absent while PENDING; set once the mobile
+  // app approves pairing.
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
   // Long-lived token the extension stores locally to identify its session.
   sessionToken: { type: String, required: true, unique: true, index: true },
   deviceLabel: { type: String, default: 'Unknown device' },
