@@ -61,6 +61,38 @@ router.post('/order', async (req, res) => {
   }
 });
 
+// Send a collect request to a specific UPI ID
+router.post('/order/:orderId/request', async (req, res) => {
+  try {
+    const { payerUpiId } = req.body;
+    if (!payerUpiId) return res.status(400).json({ error: 'payerUpiId is required' });
+
+    const order = await Order.findOne({ orderId: req.params.orderId });
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    if (order.status !== 'CREATED') return res.status(409).json({ error: 'Order already processed' });
+
+    order.payerUpiId = payerUpiId;
+    await order.save();
+
+    res.json({ message: 'Request sent', orderId: order.orderId });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to send request' });
+  }
+});
+
+// Mobile app polls this to find pending requests directed at its UPI ID
+router.get('/pending-requests/:upiId', async (req, res) => {
+  try {
+    const { upiId } = req.params;
+    const orders = await Order.find({ payerUpiId: upiId, status: 'CREATED' });
+    res.json(orders);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch pending requests' });
+  }
+});
+
 // Canonical order details — read by both the wallet (to display/charge) and the
 // merchant (to verify). Never returns secrets.
 router.get('/order/:orderId', async (req, res) => {

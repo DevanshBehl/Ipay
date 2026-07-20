@@ -1,71 +1,215 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nebula Store — InstaPay Checkout Demo</title>
-    <style>
-      :root { color-scheme: dark; }
-      * { box-sizing: border-box; }
-      body { font-family: system-ui, -apple-system, sans-serif; margin: 0; background: #0a0a0b; color: #eaeaea; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
-      .checkout { width: 100%; max-width: 420px; background: #131316; border: 1px solid #26262b; border-radius: 20px; overflow: hidden; }
-      .head { padding: 22px 24px; border-bottom: 1px solid #26262b; display: flex; align-items: center; justify-content: space-between; }
-      .brand { font-weight: 800; letter-spacing: -0.5px; }
-      .wallet-badge { font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid #333; }
-      .wallet-badge.on { color: #8fb400; border-color: #3a4a12; background: #182007; }
-      .wallet-badge.off { color: #f77; border-color: #4a1212; background: #200707; }
-      .body { padding: 24px; }
-      .item { display: flex; gap: 14px; align-items: center; margin-bottom: 18px; }
-      .thumb { width: 56px; height: 56px; border-radius: 14px; background: linear-gradient(135deg,#7B2FF7,#2196F3); flex-shrink: 0; }
-      .item h3 { margin: 0; font-size: 16px; }
-      .item p { margin: 4px 0 0; font-size: 13px; color: #8a8a92; }
-      .rows { border-top: 1px solid #26262b; padding-top: 16px; margin-top: 4px; }
-      .row { display: flex; justify-content: space-between; font-size: 14px; margin: 8px 0; color: #b7b7bd; }
-      .row.total { color: #fff; font-weight: 700; font-size: 18px; margin-top: 14px; }
-      label { display: block; font-size: 12px; color: #8a8a92; margin: 16px 0 6px; }
-      input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #333; background: #0e0e10; color: #fff; font-size: 13px; }
-      button.pay { width: 100%; margin-top: 20px; padding: 15px; border-radius: 14px; border: none; background: #fff; color: #000; font-weight: 700; font-size: 16px; cursor: pointer; transition: transform .1s; }
-      button.pay:active { transform: scale(.98); }
-      button.pay:disabled { opacity: .5; cursor: not-allowed; }
-      .status { margin-top: 18px; padding: 14px; border-radius: 12px; font-size: 14px; display: none; }
-      .status.show { display: block; }
-      .status.pending { background: #1a1a1f; color: #cfcfd6; }
-      .status.success { background: #10230a; color: #a7e26a; border: 1px solid #2e4d13; }
-      .status.error { background: #230a0a; color: #f2a1a1; border: 1px solid #4d1313; }
-      .status code { font-family: ui-monospace, monospace; font-size: 12px; word-break: break-all; }
-      .foot { padding: 14px 24px; border-top: 1px solid #26262b; font-size: 12px; color: #6a6a72; text-align: center; }
-    </style>
-  </head>
-  <body>
-    <div class="checkout">
-      <div class="head">
-        <span class="brand">🛍️ Nebula Store</span>
-        <span id="walletBadge" class="wallet-badge off">wallet: checking…</span>
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout | Nebula Store</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: '#0a0a0b',
+            accent: '#ffffff',
+            surface: '#131316',
+            border: '#26262b',
+            textMuted: '#8a8a92',
+          },
+          animation: {
+            'spin-slow': 'spin 3s linear infinite',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #0a0a0b; color: #eaeaea; }
+    /* Hide scrollbar for tabs */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    /* Checkbox custom */
+    input[type="radio"] { accent-color: white; }
+    
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Success overlay */
+    #successOverlay { display: none; }
+    #successOverlay.show { display: flex; }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 sm:p-8 font-sans">
+  
+  <div class="w-full max-w-4xl bg-surface border border-border rounded-2xl overflow-hidden shadow-2xl flex flex-col md:flex-row relative">
+    
+    <!-- SUCCESS OVERLAY (Hidden by default) -->
+    <div id="successOverlay" class="absolute inset-0 z-50 bg-surface flex-col items-center justify-center p-8 text-center">
+      <div class="w-20 h-20 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center mb-6">
+        <svg class="w-10 h-10 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
       </div>
-      <div class="body">
-        <div class="item">
-          <div class="thumb"></div>
-          <div>
-            <h3>Nebula Hoodie</h3>
-            <p>Midnight black · size M</p>
-          </div>
+      <h2 class="text-2xl font-bold text-white mb-2">Payment Successful</h2>
+      <p class="text-textMuted mb-8">Your order has been confirmed.</p>
+      
+      <div class="bg-black/50 border border-border rounded-xl p-4 w-full max-w-sm mx-auto text-left space-y-3">
+        <div class="flex justify-between">
+          <span class="text-textMuted text-sm">Order ID</span>
+          <span id="succOrderId" class="font-mono text-sm text-white">---</span>
         </div>
-        <div class="rows">
-          <div class="row"><span>Subtotal</span><span>₹1,299.00</span></div>
-          <div class="row"><span>Shipping</span><span>₹200.00</span></div>
-          <div class="row total"><span>Total</span><span>₹1,499.00</span></div>
+        <div class="flex justify-between">
+          <span class="text-textMuted text-sm">Transaction Ref</span>
+          <span id="succTxnId" class="font-mono text-sm text-white">---</span>
         </div>
-
-        <label for="key">Merchant key (keyId)</label>
-        <input id="key" placeholder="ipay_test_…" />
-
-        <button id="payBtn" class="pay">Pay ₹1,499 with InstaPay</button>
-
-        <div id="status" class="status"></div>
+        <div class="flex justify-between pt-3 border-t border-border">
+          <span class="text-textMuted text-sm">Amount Paid</span>
+          <span class="font-bold text-white">₹1,499.00</span>
+        </div>
       </div>
-      <div class="foot">Simulated UPI gateway · InstaPay Checkout SDK demo</div>
+      
+      <button onclick="window.location.reload()" class="mt-8 px-8 py-3 bg-white text-black font-bold rounded-xl hover:bg-gray-100 transition-colors">
+        Return to Store
+      </button>
     </div>
 
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+    <!-- LEFT PANE: Order Summary -->
+    <div class="w-full md:w-5/12 bg-black/40 p-6 sm:p-8 border-b md:border-b-0 md:border-r border-border">
+      <div class="flex items-center gap-2 mb-10">
+        <div class="w-8 h-8 rounded bg-white text-black flex items-center justify-center font-bold">N</div>
+        <span class="font-bold tracking-tight text-lg text-white">Nebula Store</span>
+      </div>
+
+      <div class="mb-8">
+        <div class="text-textMuted text-sm font-medium mb-1">Total due</div>
+        <div class="text-4xl font-bold text-white tracking-tight">₹1,499.00</div>
+      </div>
+
+      <div class="space-y-4">
+        <!-- Item -->
+        <div class="flex gap-4 items-center">
+          <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-600 to-blue-500 flex-shrink-0"></div>
+          <div class="flex-1">
+            <h3 class="font-medium text-white text-sm">Nebula Hoodie</h3>
+            <p class="text-textMuted text-xs mt-0.5">Midnight black · Size M</p>
+          </div>
+          <div class="text-sm font-medium text-white">₹1,299.00</div>
+        </div>
+      </div>
+
+      <div class="mt-8 pt-6 border-t border-border space-y-3">
+        <div class="flex justify-between text-sm">
+          <span class="text-textMuted">Subtotal</span>
+          <span class="text-white">₹1,299.00</span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-textMuted">Shipping</span>
+          <span class="text-white">₹200.00</span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-textMuted">Tax</span>
+          <span class="text-white">₹0.00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANE: Payment Methods -->
+    <div class="w-full md:w-7/12 p-6 sm:p-8 flex flex-col">
+      <div class="mb-6 flex justify-between items-center">
+        <h2 class="text-xl font-bold text-white">Payment</h2>
+        <div id="walletBadge" class="hidden text-xs font-medium px-2.5 py-1 rounded-full bg-green-500/10 text-green-400 border border-green-500/20 flex items-center gap-1.5">
+          <div class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></div>
+          Wallet Detected
+        </div>
+      </div>
+
+      <!-- InstaPay Banner (Injected if wallet detected) -->
+      <div id="instaPayBanner" class="hidden mb-8 p-1 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 p-[1px]">
+        <div class="bg-surface rounded-[15px] p-4 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-black">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            </div>
+            <div>
+              <h3 class="font-bold text-white text-sm">InstaPay Wallet</h3>
+              <p class="text-xs text-textMuted mt-0.5">Pay instantly with your browser wallet</p>
+            </div>
+          </div>
+          <button id="payWithWalletBtn" class="px-4 py-2 bg-white text-black text-sm font-bold rounded-lg hover:bg-gray-100 transition-colors">
+            Pay ₹1,499
+          </button>
+        </div>
+      </div>
+
+      <div class="flex gap-2 p-1 bg-black/50 rounded-xl mb-6">
+        <button class="tab-btn flex-1 py-2 text-sm font-medium rounded-lg transition-colors text-white bg-surface shadow-sm border border-border" data-target="tab-card">Cards</button>
+        <button class="tab-btn flex-1 py-2 text-sm font-medium rounded-lg transition-colors text-textMuted hover:text-white" data-target="tab-upi">UPI</button>
+      </div>
+
+      <div class="flex-1 relative">
+        
+        <!-- CARD TAB -->
+        <div id="tab-card" class="tab-content active space-y-4">
+          <div>
+            <label class="block text-xs font-medium text-textMuted mb-1.5">Card Information</label>
+            <div class="border border-border rounded-xl overflow-hidden bg-black/20 focus-within:border-white/40 transition-colors">
+              <input type="text" placeholder="Card number" class="w-full bg-transparent p-3.5 text-sm text-white placeholder-gray-600 outline-none border-b border-border" />
+              <div class="flex">
+                <input type="text" placeholder="MM / YY" class="w-1/2 bg-transparent p-3.5 text-sm text-white placeholder-gray-600 outline-none border-r border-border" />
+                <input type="text" placeholder="CVC" class="w-1/2 bg-transparent p-3.5 text-sm text-white placeholder-gray-600 outline-none" />
+              </div>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-textMuted mb-1.5">Name on card</label>
+            <input type="text" placeholder="Full name" class="w-full bg-black/20 border border-border rounded-xl p-3.5 text-sm text-white placeholder-gray-600 outline-none focus:border-white/40 transition-colors" />
+          </div>
+          
+          <button id="payWithCardBtn" class="w-full mt-4 py-3.5 bg-white text-black font-bold rounded-xl hover:bg-gray-100 transition-colors flex justify-center items-center gap-2">
+            Pay ₹1,499
+          </button>
+        </div>
+
+        <!-- UPI TAB -->
+        <div id="tab-upi" class="tab-content">
+          <div class="flex flex-col sm:flex-row gap-6">
+            <!-- QR Section -->
+            <div class="flex-1 border border-border rounded-xl p-4 bg-black/20 flex flex-col items-center text-center">
+              <div class="text-xs font-medium text-textMuted mb-4">Scan with any UPI App</div>
+              <div id="qrcode" class="bg-white p-2 rounded-lg mb-3">
+                <!-- QR Code generated here -->
+              </div>
+              <div class="text-xs text-textMuted">InstaPay, GPay, PhonePe, Paytm</div>
+            </div>
+            
+            <div class="flex items-center justify-center">
+              <span class="text-textMuted text-xs uppercase tracking-widest font-bold">OR</span>
+            </div>
+
+            <!-- Manual Section -->
+            <div class="flex-1 flex flex-col justify-center">
+              <label class="block text-xs font-medium text-textMuted mb-1.5">Enter UPI ID</label>
+              <div class="flex border border-border rounded-xl bg-black/20 overflow-hidden focus-within:border-white/40 transition-colors mb-4">
+                <input id="upiIdInput" type="text" placeholder="name@bank" class="w-full bg-transparent p-3 text-sm text-white placeholder-gray-600 outline-none" />
+              </div>
+              <button id="payWithUpiIdBtn" class="w-full py-3 bg-white text-black text-sm font-bold rounded-xl hover:bg-gray-100 transition-colors disabled:opacity-50">
+                Proceed
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer/Config -->
+      <div class="mt-auto pt-6">
+        <label class="block text-xs font-medium text-textMuted mb-1">Merchant Key (Dev)</label>
+        <input id="key" type="text" placeholder="ipay_test_..." class="w-full bg-transparent border-b border-border py-2 text-xs text-textMuted focus:text-white outline-none font-mono" />
+      </div>
+
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
 </html>
