@@ -1,49 +1,50 @@
-# InstaPay — a browser-native UPI wallet (simulated prototype)
+# InstaPay — A Browser-Native UPI Wallet
 
-InstaPay makes UPI payments work from the browser the way crypto wallets do — a page detects a `window.upi` provider, connects, and asks the wallet to pay, with an in-wallet approval popup. It removes the usual laptop → payment-gateway → phone → PIN round-trip that makes web UPI checkouts slow and flaky.
+InstaPay is a next-generation conceptual prototype that brings **UPI payments natively into the desktop browser**, operating identically to modern Web3 wallets. 
 
-> **This is a simulated prototype.** No real bank accounts, money, NPCI, or RBI rails are involved. It exists to demonstrate the UX and architecture of a browser-native UPI wallet, not to move real funds.
+By injecting a `window.upi` provider into web pages, InstaPay removes the friction of traditional UPI checkouts (laptop → payment gateway → mobile app → UPI PIN → wait for callback). Instead, users connect their wallet and approve transactions directly in the browser via an instant popup.
+
+> **Disclaimer: This is a simulated prototype.** No real bank accounts, real money, NPCI, or RBI rails are involved. It exists purely to demonstrate the UX, security architecture, and technical feasibility of a browser-native UPI wallet.
 
 ---
 
-## The idea, in one picture
+## 🌟 The Vision
 
-Three proven products inspired the three pieces of this system:
+Modern web payments shouldn't require you to pull out your phone. We looked at three proven paradigms and combined them to create InstaPay:
 
-| Inspiration | What we borrowed | Maps to |
+| Inspiration | What we borrowed | How it maps to InstaPay |
 |---|---|---|
-| **Any UPI app** (PhonePe/GPay) | pay by UPI ID / QR, UPI PIN to authorize | **Mobile app** |
-| **WhatsApp Web** | scan a QR on your phone to log a browser in; see & revoke active sessions | **Session pairing** (mobile ↔ extension) |
-| **Phantom / MetaMask** | inject `window.upi`; a dApp connects and requests signatures | **Browser extension + `window.upi`** |
+| **Any UPI app** (PhonePe/GPay) | Pay via UPI ID or QR, authorize with a UPI PIN | **The Mobile App** (Command Center) |
+| **WhatsApp Web** | Scan a QR on your phone to log a browser in; see & instantly revoke active sessions | **Session Pairing & Security** (Mobile ↔ Extension) |
+| **Phantom / MetaMask** | Inject `window.upi`; merchants connect and request signatures | **The Browser Extension** (Wallet UI + Provider) |
 
-Unlike crypto wallets, **keys/PINs never live in the browser** — custody stays on the central backend (the "bank"), because UPI operates under a central authority. The browser only ever holds a session token + JWT.
+Unlike crypto wallets, **keys and PINs never live in the browser**. Because UPI operates under a central authority, custody remains on the central backend (the "bank"). The browser only holds a secure, revocable session token.
 
 ---
 
-## Demo
+## 🚀 Key Features
 
-Four headline flows (see [`docs/DEMO.md`](docs/DEMO.md) for the recording guide; drop the GIFs into `docs/` and they render here):
+- **One-Click Web Checkout:** Merchants can request payments directly via `window.upi.pay()`, triggering a seamless approval popup in the extension.
+- **Order-Based Gateway Verification:** The wallet fetches the canonical order details directly from the server backend. A maliciously tampered webpage cannot trick the user into paying a different amount.
+- **WhatsApp-Style Session Pairing:** Scan a QR code on the extension from the mobile app to securely pair your devices.
+- **Live Remote Kill-Switch:** Sessions are managed over raw WebSockets. If you lose your laptop, you can "Terminate" the session from your mobile app and the extension will lock instantly (<1s latency).
+- **Two-Tier PIN Architecture:** A 4-digit **Login PIN** protects the local extension from prying eyes, while a highly secure **UPI PIN** is required for any actual money movement.
 
-| Pairing | `window.upi` pay | Gateway checkout | Remote kill-switch |
-|---|---|---|---|
+---
+
+## 🎥 Demo Flows
+
+*(See [`docs/DEMO.md`](docs/DEMO.md) for recording guides)*
+
+| 📱 Session Pairing | 🌐 `window.upi` Pay | 🛒 Gateway Checkout | 🔒 Remote Kill-Switch |
+|:---:|:---:|:---:|:---:|
 | ![Pairing](docs/01-pairing.gif) | ![window.upi pay](docs/02-window-upi-pay.gif) | ![Gateway checkout](docs/03-gateway-checkout.gif) | ![Remote terminate](docs/04-remote-terminate.gif) |
 
 ---
 
-## Repository layout
+## 🏗️ System Architecture
 
-```
-Ipay/
-├── backend/      Express 5 + MongoDB (Mongoose) + TypeScript — the "central bank" + gateway
-├── mobile-app/   Expo / React Native — the UPI app (pay, pair browsers, manage sessions)
-├── web-demo/     Chrome MV3 extension — the browser wallet (window.upi provider + approval UI)
-├── gateway/      InstaPay Checkout SDK + a demo merchant store (Vite)
-└── landingpage/  Marketing site
-```
-
----
-
-## Architecture
+InstaPay is built across 5 distinct codebases working in harmony:
 
 ```mermaid
 flowchart LR
@@ -51,13 +52,13 @@ flowchart LR
     M[Mobile app]
   end
   subgraph Browser
-    P[Web page / merchant store]
+    P[Web page / Merchant Store]
     SDK[InstaPay Checkout SDK]
-    EXT[Extension wallet<br/>window.upi + approval]
+    EXT[Extension Wallet<br/>window.upi + Approval UI]
   end
   subgraph Server
-    API[Backend API<br/>auth · session · bank · transaction · gateway]
-    WS[(WebSocket<br/>revocation)]
+    API[Backend API<br/>Auth · Session · Bank · Gateway]
+    WS[(WebSocket<br/>Revocation)]
     DB[(MongoDB)]
   end
 
@@ -70,21 +71,16 @@ flowchart LR
   API --- DB
 ```
 
-**Two PINs, deliberately separate**
-- **Login PIN** (4-digit) — unlocks the *browser wallet* on every open. Gates access.
-- **UPI PIN** — authorizes *money movement* (balance reveal, payments). The signing secret.
-
-**Security model**
-- Custody is server-side; the browser stores only `instapay.sessionToken` + `instapay.jwt`. No PIN, balance, or secret is ever in `localStorage`.
-- Session revocation is **pushed over a raw WebSocket** (like WhatsApp Web), so a phone-side "Terminate" logs the extension out in well under a second — and a revoked session's JWT is rejected by the API too.
-- The provider (page context) never receives the JWT/PIN; the background service worker never receives them either — only the approval window (an extension page) talks to the backend.
-- The gateway is **order-based**: the wallet fetches the canonical order from the server and charges *that* amount/payee, so a tampered page can't show ₹1 while charging ₹1000. Orders are single-use.
+### Security Model Deep Dive
+- **Strict Custody:** The browser stores only `instapay.sessionToken` + `instapay.jwt`. No PIN, account balance, or signing secret is ever persisted in `localStorage`.
+- **Context Isolation:** The web page context never touches the JWT or PIN. Even the extension's background service worker never sees the PIN — only the isolated approval window (an extension popup) communicates directly with the backend.
+- **Atomic Revocation:** A revoked session's JWT is instantly rejected by the API, and the WebSocket push ensures the local UI locks immediately.
 
 ---
 
-## Key flows
+## 🔄 Core Technical Workflows
 
-### 1. Session pairing (WhatsApp-Web style)
+### 1. Session Pairing (WhatsApp-Web style)
 
 ```mermaid
 sequenceDiagram
@@ -101,7 +97,7 @@ sequenceDiagram
   Ext->>Ext: store session, open login-PIN lock
 ```
 
-### 2. `window.upi` connect + pay
+### 2. `window.upi` Connect & Pay
 
 ```mermaid
 sequenceDiagram
@@ -111,6 +107,7 @@ sequenceDiagram
   participant BG as service worker
   participant Win as Approval window
   participant API as Backend
+  
   Page->>Provider: pay({ orderId, amount, payee })
   Provider->>Bridge: postMessage (nonce)
   Bridge->>BG: port message (+ real origin)
@@ -120,10 +117,12 @@ sequenceDiagram
   Win->>API: POST /gateway/order/:id/pay
   API-->>Win: { status: PAID, paymentTxnId }
   Win-->>BG: resolve(rid)
-  BG-->>Bridge-->>Provider-->>Page: { status, txnId }
+  BG-->>Bridge: return { status, txnId }
+  Bridge-->>Provider: postMessage
+  Provider-->>Page: resolve promise
 ```
 
-### 3. Gateway checkout (merchant view)
+### 3. Gateway Checkout (Merchant View)
 
 ```mermaid
 sequenceDiagram
@@ -131,6 +130,7 @@ sequenceDiagram
   participant SDK as Checkout SDK
   participant API as Backend
   participant Wallet as Extension
+  
   Store->>SDK: checkout({ amount })
   SDK->>API: POST /gateway/order { keyId, amount }
   API-->>SDK: { orderId, payeeUpiId }
@@ -140,79 +140,63 @@ sequenceDiagram
   Store->>API: (optional) GET /gateway/order/:id → verify PAID
 ```
 
-### 4. Remote termination (kill-switch)
-
-```mermaid
-sequenceDiagram
-  participant Phone
-  participant API as Backend
-  participant WS as WebSocket
-  participant Ext as Extension
-  Phone->>API: POST /session/terminate { sessionId }
-  API->>WS: push "terminated"
-  WS-->>Ext: terminated (<1s)
-  Ext->>Ext: wipe session → back to pairing QR
-  Note over Ext,API: any later API call with the old JWT → 401
-```
-
 ---
 
-## Setup & run
+## 🛠️ Setup & Local Development
 
-Prereqs: Node 18+, a MongoDB (local or Atlas), and Chrome 111+.
+**Prerequisites:** Node.js 18+, MongoDB (local or Atlas), and Google Chrome 111+.
 
-### 1. Backend
+### 1. The Central Backend
 ```bash
 cd backend
-cp .env.example .env         # set MONGO_URI, JWT_SECRET, PORT=5001
+cp .env.example .env         # Set MONGO_URI, JWT_SECRET, PORT=5001
 npm install
-npm run dev                  # http://localhost:5001
+npm run dev                  # API runs at http://localhost:5001
 ```
 
-### 2. Seed a demo world (fast path)
+### 2. Seed a Demo World
 ```bash
 cd backend
-npm run seed                 # local DB
-# npm run seed -- --force    # if MONGO_URI is Atlas/non-local
+npm run seed                 # Scaffolds local DB with mock users
+# npm run seed -- --force    # Use if MONGO_URI is Atlas/non-local
 ```
-Prints demo users (payer/merchant/contacts), their UPI/login PINs, and the merchant **keyId**.
+*Note: This prints demo users (payer/merchant/contacts), their UPI/login PINs, and the merchant **keyId**.*
 
-### 3. Browser wallet (extension)
+### 3. Browser Wallet (Chrome Extension)
 ```bash
 cd web-demo
-cp .env.example .env         # VITE_API_BASE_URL=http://localhost:5001/api
+cp .env.example .env         # Set VITE_API_BASE_URL=http://localhost:5001/api
 npm install
 npm run build
-# Chrome → chrome://extensions → Developer mode → Load unpacked → select web-demo/dist
 ```
+*To install: Open Chrome → `chrome://extensions` → Enable Developer mode → Load unpacked → select the `web-demo/dist` folder.*
 
-### 4. Merchant store (gateway)
+### 4. Merchant Store (Gateway Demo)
 ```bash
 cd gateway
-cp .env.example .env         # VITE_API_BASE + optional VITE_INSTAPAY_KEY
+cp .env.example .env         # Set VITE_API_BASE + VITE_INSTAPAY_KEY (from seed)
 npm install
-npm run dev                  # http://localhost:5173 (paste the seed keyId)
+npm run dev                  # http://localhost:5173
 ```
 
-### 5. Mobile app
+### 5. Mobile App (Command Center)
 ```bash
 cd mobile-app
-cp .env.example .env         # EXPO_PUBLIC_API_URL=http://<your-LAN-ip>:5001/api
+cp .env.example .env         # Set EXPO_PUBLIC_API_URL=http://<your-LAN-ip>:5001/api
 npm install
 npx expo start
 ```
 
-**Demo path:** seed → open the store → *Pay with InstaPay* → the extension approval shows the server-verified order → enter the UPI PIN → success. Pair the extension from the mobile app's Scan screen; terminate it from **Linked Devices** to see the live logout.
-
 ---
 
-## Tech stack
+## 🏗️ Technology Stack
 
-- **Backend:** Node/Express 5, MongoDB/Mongoose, JWT, bcrypt, `ws`, Twilio/Nodemailer (optional OTP delivery).
-- **Extension:** MV3, React 19 + Vite + Tailwind (popup), esbuild-bundled content scripts (MAIN + ISOLATED worlds) + background service worker.
-- **Gateway:** Vite + a framework-agnostic TypeScript Checkout SDK.
-- **Mobile:** Expo / React Native, React Navigation.
+- **Backend:** Node.js, Express 5, MongoDB (Mongoose), JWT, bcrypt, `ws` (WebSockets), Twilio/Nodemailer (OTP delivery).
+- **Extension Wallet:** Chrome MV3, React 19, Vite, Tailwind CSS, esbuild (for content scripts).
+- **Gateway & Store:** Vite, React, Framework-agnostic TypeScript Checkout SDK.
+- **Mobile App:** React Native, Expo, React Navigation.
 
-## Not production
+## 📝 Limitations & Scope
 
-Simulated custody, in-browser order creation with a public key, popup-only revocation listening, no real NPCI/RBI integration, and demo-grade auth. It's a UX/architecture prototype — see each phase file (`phase0.md`…`phase5.md`) for scope and the deliberate simplifications.
+This is a **UX and Architecture prototype**. It features simulated custody, in-browser order creation with a public key, popup-only revocation listening, no real NPCI/RBI integration, and demo-grade authentication. See the phase design docs (`phase0.md` through `phase5.md`) for detailed scope and deliberate technical simplifications.
+
