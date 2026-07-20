@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nebula Store — InstaPay Checkout Demo</title>
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      body { font-family: system-ui, -apple-system, sans-serif; margin: 0; background: #0a0a0b; color: #eaeaea; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+      .checkout { width: 100%; max-width: 420px; background: #131316; border: 1px solid #26262b; border-radius: 20px; overflow: hidden; }
+      .head { padding: 22px 24px; border-bottom: 1px solid #26262b; display: flex; align-items: center; justify-content: space-between; }
+      .brand { font-weight: 800; letter-spacing: -0.5px; }
+      .wallet-badge { font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid #333; }
+      .wallet-badge.on { color: #8fb400; border-color: #3a4a12; background: #182007; }
+      .wallet-badge.off { color: #f77; border-color: #4a1212; background: #200707; }
+      .body { padding: 24px; }
+      .item { display: flex; gap: 14px; align-items: center; margin-bottom: 18px; }
+      .thumb { width: 56px; height: 56px; border-radius: 14px; background: linear-gradient(135deg,#7B2FF7,#2196F3); flex-shrink: 0; }
+      .item h3 { margin: 0; font-size: 16px; }
+      .item p { margin: 4px 0 0; font-size: 13px; color: #8a8a92; }
+      .rows { border-top: 1px solid #26262b; padding-top: 16px; margin-top: 4px; }
+      .row { display: flex; justify-content: space-between; font-size: 14px; margin: 8px 0; color: #b7b7bd; }
+      .row.total { color: #fff; font-weight: 700; font-size: 18px; margin-top: 14px; }
+      label { display: block; font-size: 12px; color: #8a8a92; margin: 16px 0 6px; }
+      input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #333; background: #0e0e10; color: #fff; font-size: 13px; }
+      button.pay { width: 100%; margin-top: 20px; padding: 15px; border-radius: 14px; border: none; background: #fff; color: #000; font-weight: 700; font-size: 16px; cursor: pointer; transition: transform .1s; }
+      button.pay:active { transform: scale(.98); }
+      button.pay:disabled { opacity: .5; cursor: not-allowed; }
+      .status { margin-top: 18px; padding: 14px; border-radius: 12px; font-size: 14px; display: none; }
+      .status.show { display: block; }
+      .status.pending { background: #1a1a1f; color: #cfcfd6; }
+      .status.success { background: #10230a; color: #a7e26a; border: 1px solid #2e4d13; }
+      .status.error { background: #230a0a; color: #f2a1a1; border: 1px solid #4d1313; }
+      .status code { font-family: ui-monospace, monospace; font-size: 12px; word-break: break-all; }
+      .foot { padding: 14px 24px; border-top: 1px solid #26262b; font-size: 12px; color: #6a6a72; text-align: center; }
+    </style>
+  </head>
+  <body>
+    <div class="checkout">
+      <div class="head">
+        <span class="brand">🛍️ Nebula Store</span>
+        <span id="walletBadge" class="wallet-badge off">wallet: checking…</span>
+      </div>
+      <div class="body">
+        <div class="item">
+          <div class="thumb"></div>
+          <div>
+            <h3>Nebula Hoodie</h3>
+            <p>Midnight black · size M</p>
+          </div>
+        </div>
+        <div class="rows">
+          <div class="row"><span>Subtotal</span><span>₹1,299.00</span></div>
+          <div class="row"><span>Shipping</span><span>₹200.00</span></div>
+          <div class="row total"><span>Total</span><span>₹1,499.00</span></div>
+        </div>
+
+        <label for="key">Merchant key (keyId)</label>
+        <input id="key" placeholder="ipay_test_…" />
+
+        <button id="payBtn" class="pay">Pay ₹1,499 with InstaPay</button>
+
+        <div id="status" class="status"></div>
+      </div>
+      <div class="foot">Simulated UPI gateway · InstaPay Checkout SDK demo</div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

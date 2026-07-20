@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import Transaction from '../models/Transaction';
-import User from '../models/User';
-import BankAccount from '../models/BankAccount';
+import { executeTransfer, TransferError } from '../services/transfer';
 
 const router = Router();
 
@@ -11,66 +10,24 @@ router.post('/send', async (req, res) => {
 
     if (senderUserId !== req.userId) return res.status(403).json({ error: 'Forbidden' });
 
-    const sender = await User.findById(senderUserId);
-    const receiver = await User.findOne({ upiId: receiverUpiId });
-
-    if (!sender || !receiver) {
-      return res.status(404).json({ error: 'Sender or receiver not found' });
-    }
-
-    if (!sender.upiPin || !(await sender.comparePin(upiPin))) {
-      return res.status(401).json({ error: 'Invalid UPI PIN' });
-    }
-
-    const senderAccount = await BankAccount.findById(senderBankAccountId);
-    if (!senderAccount) return res.status(404).json({ error: 'Sender account not found' });
-    
-    if (senderAccount.balance < amount) {
-      const failedTx = new Transaction({
-        senderUpiId: sender.upiId,
-        receiverUpiId: receiver.upiId,
-        amount,
-        status: 'FAILED'
-      });
-      await failedTx.save();
-      return res.status(400).json({ error: 'Insufficient balance', transaction: failedTx });
-    }
-
-    // Receiver must have at least one linked account (primary is index 0)
-    if (!receiver.linkedAccounts || receiver.linkedAccounts.length === 0) {
-        return res.status(400).json({ error: 'Receiver has no linked bank account' });
-    }
-    const receiverAccount = await BankAccount.findById(receiver.linkedAccounts[0]);
-    if (!receiverAccount) {
-        return res.status(400).json({ error: 'Receiver primary account not found' });
-    }
-
-    // Perform transfer with basic manual rollback safety
-    senderAccount.balance -= amount;
-    receiverAccount.balance += amount;
-
-    try {
-      await senderAccount.save();
-      await receiverAccount.save();
-    } catch (saveError) {
-      // Manual rollback if partial save fails
-      senderAccount.balance += amount;
-      receiverAccount.balance -= amount;
-      await senderAccount.save().catch(e => console.error("CRITICAL: Failed to rollback sender", e));
-      await receiverAccount.save().catch(e => console.error("CRITICAL: Failed to rollback receiver", e));
-      throw new Error('Database transaction failed during save');
-    }
-
-    const successTx = new Transaction({
-      senderUpiId: sender.upiId,
-      receiverUpiId: receiver.upiId,
-      amount,
-      status: 'SUCCESS'
-    });
-    await successTx.save();
-
-    res.json({ message: 'Transaction successful', transaction: successTx });
+    const { transaction } = await executeTransfer({ senderUserId, senderBankAccountId, receiverUpiId, amount, upiPin });
+    res.json({ message: 'Transaction successful', transaction });
   } catch (error) {
+    if (error instanceof TransferError) {
+      switch (error.code) {
+        case 'SENDER_NOT_FOUND':
+        case 'RECEIVER_NOT_FOUND':
+          return res.status(404).json({ error: 'Sender or receiver not found' });
+        case 'INVALID_PIN':
+          return res.status(401).json({ error: 'Invalid UPI PIN' });
+        case 'ACCOUNT_NOT_FOUND':
+          return res.status(404).json({ error: 'Sender account not found' });
+        case 'INSUFFICIENT_BALANCE':
+          return res.status(400).json({ error: 'Insufficient balance', transaction: error.transaction });
+        case 'RECEIVER_NO_ACCOUNT':
+          return res.status(400).json({ error: error.message });
+      }
+    }
     console.error(error);
     res.status(500).json({ error: 'Transaction failed' });
   }

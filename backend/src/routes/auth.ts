@@ -130,8 +130,14 @@ router.post('/verify-otp', async (req, res) => {
     }
 
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '7d' });
-    
-    res.json({ token, user, isNewUser });
+
+    // Never return the PIN hashes; expose only boolean "has" flags the client needs.
+    const { upiPin, loginPin, loginPinAttempts, loginPinLockedUntil, ...safeUser } = user.toObject();
+    res.json({
+      token,
+      user: { ...safeUser, hasUpiPin: !!upiPin, hasLoginPin: !!loginPin },
+      isNewUser
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to verify OTP' });
@@ -176,8 +182,8 @@ router.post('/set-pin', requireAuth, async (req, res) => {
 
 router.get('/user/:id', requireAuth, async (req, res) => {
   try {
-    // Never expose the PIN hash to clients.
-    const user = await User.findById(req.params.id).select('-upiPin');
+    // Never expose the PIN hashes to clients.
+    const user = await User.findById(req.params.id).select('-upiPin -loginPin -loginPinAttempts -loginPinLockedUntil');
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json(user);
   } catch (error) {
@@ -192,11 +198,83 @@ router.get('/users', requireAuth, async (req, res) => {
     if (exclude) {
       query = { _id: { $ne: exclude } };
     }
-    const users = await User.find(query).select('-__v -upiPin');
+    const users = await User.find(query).select('-__v -upiPin -loginPin -loginPinAttempts -loginPinLockedUntil');
     res.json(users);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+// Current authenticated user (identity taken from the JWT, not the URL).
+router.get('/me', requireAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select('-upiPin -loginPin -loginPinAttempts -loginPinLockedUntil');
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const hasLoginPin = !!(await User.exists({ _id: req.userId, loginPin: { $exists: true, $ne: null } }));
+    res.json({ ...user.toObject(), hasLoginPin });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch profile' });
+  }
+});
+
+// Set or change the 4-digit browser-wallet login PIN.
+router.post('/set-login-pin', requireAuth, async (req, res) => {
+  try {
+    const { loginPin } = req.body;
+    if (!/^\d{4}$/.test(loginPin || '')) {
+      return res.status(400).json({ error: 'Login PIN must be exactly 4 digits' });
+    }
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    user.loginPin = loginPin; // hashed by the pre-save hook
+    user.loginPinAttempts = 0;
+    user.loginPinLockedUntil = undefined;
+    await user.save();
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to set login PIN' });
+  }
+});
+
+// Verify the login PIN, with a short lockout after repeated failures.
+const MAX_LOGIN_PIN_ATTEMPTS = 5;
+const LOGIN_PIN_LOCK_MS = 60 * 1000; // 60s lockout
+
+router.post('/verify-login-pin', requireAuth, async (req, res) => {
+  try {
+    const { loginPin } = req.body;
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user.loginPin) return res.status(400).json({ error: 'No login PIN set' });
+
+    if (user.loginPinLockedUntil && user.loginPinLockedUntil.getTime() > Date.now()) {
+      const seconds = Math.ceil((user.loginPinLockedUntil.getTime() - Date.now()) / 1000);
+      return res.status(429).json({ error: `Too many attempts. Try again in ${seconds}s` });
+    }
+
+    if (await user.compareLoginPin(loginPin)) {
+      user.loginPinAttempts = 0;
+      user.loginPinLockedUntil = undefined;
+      await user.save();
+      return res.json({ success: true });
+    }
+
+    user.loginPinAttempts = (user.loginPinAttempts || 0) + 1;
+    if (user.loginPinAttempts >= MAX_LOGIN_PIN_ATTEMPTS) {
+      user.loginPinLockedUntil = new Date(Date.now() + LOGIN_PIN_LOCK_MS);
+      user.loginPinAttempts = 0;
+      await user.save();
+      return res.status(429).json({ error: 'Too many attempts. Try again in 60s' });
+    }
+    await user.save();
+    res.status(401).json({ error: 'Invalid login PIN' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to verify login PIN' });
   }
 });
 

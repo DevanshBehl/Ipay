@@ -1,85 +1,158 @@
 @import 'tailwindcss';
 
+/* ============================================================
+   InstaPay wallet — design system aligned with the marketing site.
+   Monochrome. Inter. Glass, grain, silver sheen, aurora, hairlines.
+   ============================================================ */
 :root {
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --bg: #000000;
+  --surface-1: #0b0b0d;
+  --surface-2: #141417;
+  --surface-3: #1c1c20;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.14);
+  --text: #f4f4f6;
+  --text-2: #a1a1a9;
+  --text-3: #6b6b73;
+
+  font-family: 'Inter Variable', 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-feature-settings: 'cv11', 'ss01';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.011em;
 }
 
-* {
-  box-sizing: border-box;
-}
-
-html,
-body,
-#root {
-  margin: 0;
-  padding: 0;
-}
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; padding: 0; }
 
 /* Chrome extension popup dimensions (popups are capped at 800x600). */
-html,
-body {
+html, body {
   width: 380px;
   height: 600px;
   overflow: hidden;
 }
+#root { width: 100%; height: 100%; }
+body { background: var(--bg); color: var(--text); }
 
-#root {
-  width: 100%;
-  height: 100%;
+::selection { background: #fff; color: #000; }
+::-webkit-scrollbar { width: 0; height: 0; }
+
+/* ---- Glass (matches the site's .glass) ---- */
+.glass {
+  background: rgba(255, 255, 255, 0.045);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+}
+.glass-2 {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
 }
 
-body {
-  background: #000000;
+/* ---- Grain: fine print-like noise overlay ---- */
+.grain::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* ---- Wallet card gradient (used on the Visa card) ---- */
-.instapay-card {
+/* ---- Silver sheen text (monochrome), matches .text-sheen ---- */
+.text-sheen {
+  background: linear-gradient(100deg, #ffffff 0%, #7d7d83 35%, #ffffff 50%, #7d7d83 65%, #ffffff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer-text 6s linear infinite;
+}
+
+/* ---- Premium card (graphite, hairline top-light) ---- */
+.card {
+  position: relative;
   border-radius: 24px;
-  background: linear-gradient(135deg, #d4ff00 0%, #b6e000 45%, #8fb400 100%);
-  color: #0a2265;
-  box-shadow:
-    0 20px 40px -20px rgba(212, 255, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  background: linear-gradient(180deg, #161619 0%, #0d0d0f 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 24px 50px -30px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
-/* ---- Hide scrollbars for horizontal contact/quick-amount strips ---- */
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+/* ---- Hairline divider ---- */
+.hairline { height: 1px; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent); }
+
+/* ---- Numerals ---- */
+.tnum { font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+
+/* ---- Primary white pill button with sheen sweep ---- */
+.btn {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease;
 }
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+.btn:active { transform: scale(0.97); }
+.btn-white { background: #fff; color: #050506; }
+.btn-white:hover { box-shadow: 0 0 30px rgba(255, 255, 255, 0.25); }
+.btn .sheen {
+  position: absolute; inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(0, 0, 0, 0.14) 50%, transparent 70%);
+  transform: translateX(-140%);
+  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn:hover .sheen { transform: translateX(140%); }
+
+/* ---- Ghost / press ---- */
+.press { transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s, border-color 0.2s, color 0.2s; }
+.press:active { transform: scale(0.955); }
+
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* ============================= Motion ============================= */
+@keyframes shimmer-text { to { background-position: 200% center; } }
+
+@keyframes aurora {
+  0% { transform: translate3d(0,0,0) scale(1); opacity: 0.55; }
+  50% { transform: translate3d(3%,-4%,0) scale(1.12); opacity: 0.8; }
+  100% { transform: translate3d(-3%,3%,0) scale(1.05); opacity: 0.6; }
+}
+.animate-aurora { animation: aurora 16s ease-in-out infinite alternate; }
+
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+.reveal { opacity: 0; animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.animate-fade-in { animation: fade-in 0.4s ease both; }
+
+@keyframes slide-up { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+.animate-slide-up { animation: slide-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@keyframes pop { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+.animate-pop { animation: pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+@keyframes shake { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-7px); } 40%,80% { transform: translateX(7px); } }
+.animate-shake { animation: shake 0.4s ease-in-out both; }
+
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.animate-draw { stroke-dasharray: 48; stroke-dashoffset: 48; animation: draw 0.55s 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 }
 
-/* ---- Animations referenced by the InstaPay views ---- */
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(24px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.animate-fade-in {
-  animation: fade-in 0.35s ease both;
-}
-
-.animate-slide-up {
-  animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
+/* ============================================================
+   Back-compat aliases (monochrome) for screens not yet rebuilt.
+   ============================================================ */
+:root { --gold-2: #ffffff; --gold-grad: linear-gradient(135deg, #ffffff, #ededf0 55%, #d2d2d6); }
+.lux-surface { background: rgba(255, 255, 255, 0.045); border: 1px solid var(--line); }
+.lux-surface-2 { background: var(--surface-2); border: 1px solid var(--line); }
+.lux-card { position: relative; border-radius: 24px; background: linear-gradient(180deg, #161619 0%, #0d0d0f 100%); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 24px 50px -30px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.07); overflow: hidden; }
+.gold-fill { background: #ffffff; color: #050506; }
+.gold-text { color: #ffffff; }
+.gold-ring { box-shadow: 0 0 30px rgba(255, 255, 255, 0.22); }
+.gold-shimmer { background: linear-gradient(100deg, #b8b8be 20%, #ffffff 45%, #b8b8be 70%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer-text 6s linear infinite; }
+@keyframes fade-up { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.animate-fade-up { animation: fade-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes ringpulse { 0% { transform: scale(0.9); opacity: 0.5; } 100% { transform: scale(1.7); opacity: 0; } }
+.animate-ring { animation: ringpulse 2.4s cubic-bezier(0.16, 1, 0.3, 1) infinite; }

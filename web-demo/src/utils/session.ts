@@ -88,3 +88,32 @@ export async function pollStatus(sessionToken: string): Promise<StatusResponse> 
     throw err;
   }
 }
+
+export interface Me {
+  _id: string;
+  name?: string;
+  upiId?: string;
+  mobileNumber?: string;
+  hasLoginPin: boolean;
+}
+
+/** Fetch the authenticated wallet owner (identity comes from the JWT). */
+export async function getMe(): Promise<Me> {
+  const { data } = await api.get('/auth/me');
+  return data as Me;
+}
+
+/** Create/change the 4-digit login PIN. */
+export async function setLoginPin(loginPin: string): Promise<void> {
+  await api.post('/auth/set-login-pin', { loginPin });
+}
+
+/** Verify the login PIN. Returns success or a human-readable error. */
+export async function verifyLoginPin(loginPin: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    await api.post('/auth/verify-login-pin', { loginPin });
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.response?.data?.error || 'Verification failed' };
+  }
+}

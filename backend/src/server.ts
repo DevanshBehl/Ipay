@@ -9,6 +9,7 @@ import authRoutes from './routes/auth';
 import bankRoutes from './routes/bank';
 import transactionRoutes from './routes/transaction';
 import sessionRoutes from './routes/session';
+import gatewayRoutes from './routes/gateway';
 import { requireAuth } from './middleware/auth';
 import { initSessionSocket } from './realtime/sessionSocket';
 
@@ -40,5 +41,8 @@ mongoose.connect(MONGO_URI)
 // each protected route internally. Bank and transaction are all protected.
 app.use('/api/auth', authRoutes);
 app.use('/api/session', sessionRoutes);
+// /api/gateway mixes public routes (order create/get) with a protected pay route
+// that guards itself; do not blanket-requireAuth here.
+app.use('/api/gateway', gatewayRoutes);
 app.use('/api/bank', requireAuth, bankRoutes);
 app.use('/api/transaction', requireAuth, transactionRoutes);

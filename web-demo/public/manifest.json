@@ -3,6 +3,7 @@
   "name": "InstaPay Wallet",
   "version": "1.0.0",
   "description": "InstaPay web wallet — connect your mobile and manage your money from the browser.",
+  "minimum_chrome_version": "111",
   "action": {
     "default_popup": "index.html",
     "default_title": "InstaPay Wallet",
@@ -12,6 +13,31 @@
       "128": "icons/icon-128.png"
     }
   },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["provider.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["bridge.js"],
+      "run_at": "document_start",
+      "world": "ISOLATED"
+    }
+  ],
+  "permissions": ["storage"],
+  "web_accessible_resources": [
+    {
+      "resources": ["index.html", "assets/*"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",

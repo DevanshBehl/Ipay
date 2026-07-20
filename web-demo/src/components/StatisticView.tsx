@@ -1,118 +1,80 @@
-import { useState } from 'react';
-import { statistics } from '../data/mock';
+import { useWallet } from '../WalletContext';
 import { formatINR } from '../utils/format';
 
+const shortTime = (iso: string) => {
+  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (mins < 60) return `${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h`;
+  return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+};
+
 export function StatisticView() {
-  const [primaryTab, setPrimaryTab] = useState<'Daily' | 'Weekly' | 'Monthly'>('Daily');
-  const [timeRange, setTimeRange] = useState<'D' | 'W' | 'M' | 'Y'>('M');
+  const { profile, transactions } = useWallet();
+  const myUpi = profile?.upiId;
+  const settled = transactions.filter((t) => t.status === 'SUCCESS');
+  const received = settled.filter((t) => t.receiverUpiId === myUpi).reduce((s, t) => s + t.amount, 0);
+  const sent = settled.filter((t) => t.senderUpiId === myUpi).reduce((s, t) => s + t.amount, 0);
+  const net = received - sent;
+
+  const recent = settled.slice(0, 7).reverse();
+  const maxAmt = Math.max(1, ...recent.map((t) => t.amount));
+  const bars = recent.map((t) => ({
+    label: shortTime(t.createdAt),
+    height: 14 + (t.amount / maxAmt) * 86,
+    received: t.receiverUpiId === myUpi,
+  }));
 
   return (
-    <div className="flex-1 w-full flex flex-col min-h-0 bg-[#000000] text-white overflow-y-auto pb-[100px] animate-fade-in">
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 pt-6 pb-6">
-        <button className="w-10 h-10 rounded-full bg-[#1B1D22] flex items-center justify-center border border-[#3A3D46]">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-        </button>
-        <h1 className="text-lg font-semibold">Statics</h1>
-        <button className="w-10 h-10 rounded-full bg-[#1B1D22] flex items-center justify-center border border-[#3A3D46]">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
-        </button>
+    <div className="flex-1 w-full flex flex-col min-h-0 bg-black text-white overflow-y-auto no-scrollbar pb-6 grain">
+      <div className="px-6 pt-7 pb-5 animate-fade-up relative z-[3]">
+        <h1 className="text-[22px] font-bold tracking-tight">Statistics</h1>
       </div>
 
-      {/* Primary Tabs */}
-      <div className="px-6 mb-8">
-        <div className="flex bg-[#1B1D22] p-1.5 rounded-full border border-[#000000]">
-          {['Daily', 'Weekly', 'Monthly'].map(tab => (
-            <button
-              key={tab}
-              onClick={() => setPrimaryTab(tab as any)}
-              className={`flex-1 py-3 text-sm font-semibold rounded-full transition-colors ${primaryTab === tab ? 'bg-[#FFFFFF] text-black' : 'text-zinc-400 hover:text-white'}`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Total Balance & Chart container */}
-      <div className="px-6">
-        <div className="bg-[#1B1D22] rounded-3xl p-6 border border-[#000000]">
-          <div className="flex items-start justify-between mb-6">
-            <div className="flex flex-col">
-              <span className="text-zinc-400 text-sm mb-1">Total</span>
-              <span className="text-4xl font-bold tracking-tight">{formatINR(statistics.total)}</span>
-            </div>
-            <button className="w-10 h-10 rounded-full bg-[#000000] flex items-center justify-center text-[#FFFFFF]">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-            </button>
+      {/* Net flow hero */}
+      <div className="px-6 animate-fade-up relative z-[3]" style={{ animationDelay: '60ms' }}>
+        <div className="card grain p-6">
+          <div className="flex items-center gap-2 text-[var(--text-2)]">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" /></svg>
+            <span className="text-[11px] font-semibold tracking-[0.14em] uppercase text-white">Net Flow</span>
           </div>
+          <p className="tnum text-[42px] font-extrabold mt-2 leading-none tracking-tight text-sheen">{formatINR(net)}</p>
+          <p className="text-[var(--text-3)] text-[12px] mt-2">{settled.length} settled transaction{settled.length === 1 ? '' : 's'}</p>
 
-          {/* Time Range Selector */}
-          <div className="flex items-center justify-between mb-8">
-            {['D', 'W', 'M', 'Y'].map(range => (
-              <button
-                key={range}
-                onClick={() => setTimeRange(range as any)}
-                className={`w-14 py-2 rounded-xl text-sm font-medium transition-all ${timeRange === range ? 'bg-[#FFFFFF]/10 text-[#FFFFFF] border border-[#FFFFFF]' : 'bg-[#000000] text-zinc-400 border border-transparent hover:text-white'}`}
-              >
-                {range}
-              </button>
-            ))}
-          </div>
-
-          {/* Chart Area */}
-          <div className="relative h-40 w-full flex items-end justify-between px-2 pt-4">
-            {/* Background Grid Lines */}
-            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-8 pt-4">
-              {statistics.gridLabels.map(label => (
-                <div key={label} className="w-full border-b border-zinc-800/50 border-dashed relative"><span className="absolute -top-3 -left-2 text-[10px] text-zinc-500">{label}</span></div>
-              ))}
-            </div>
-
-            {/* Bars */}
-            {statistics.bars.map((bar, i) => (
-              <div key={i} className="flex flex-col items-center z-10 w-8">
-                <div 
-                  className={`w-full rounded-t-lg transition-all duration-500 ${bar.active ? 'bg-[#FFFFFF] shadow-[0_0_15px_rgba(255,255,255,0.5)]' : 'bg-[#000000]'}`}
-                  style={{ height: bar.height }}
-                ></div>
-                <span className="text-[10px] text-zinc-500 mt-2 font-medium">{bar.label}</span>
-              </div>
-            ))}
+          {/* chart */}
+          <div className="mt-6 h-28 flex items-end justify-between gap-1.5">
+            {bars.length === 0 ? (
+              <div className="w-full text-center text-[var(--text-3)] text-xs self-center">No settled transactions</div>
+            ) : (
+              bars.map((b, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                  <div
+                    className="w-full max-w-[16px] rounded-full transition-all duration-700"
+                    style={{ height: `${b.height}%`, background: b.received ? '#ffffff' : 'rgba(255,255,255,0.2)' }}
+                  />
+                  <span className="text-[9px] text-[var(--text-3)]">{b.label}</span>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
 
-      {/* Bottom Cards */}
-      <div className="px-6 mt-6 flex gap-4">
-        <div className="flex-1 bg-[#1B1D22] rounded-3xl p-5 border border-[#000000] flex flex-col">
-          <div className="w-8 h-8 rounded-full bg-[#000000] flex items-center justify-center text-[#FFFFFF] mb-4">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+      {/* Received / Sent */}
+      <div className="px-6 mt-5 grid grid-cols-2 gap-3 animate-fade-up relative z-[3]" style={{ animationDelay: '130ms' }}>
+        <div className="glass rounded-3xl p-5">
+          <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white mb-4">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><polyline points="19 12 12 19 5 12" /></svg>
           </div>
-          <span className="text-zinc-400 text-xs mb-1">Total Withdrawal</span>
-          <span className="text-lg font-bold">{formatINR(statistics.totalWithdrawal, 0)}</span>
+          <p className="text-[var(--text-2)] text-[12px]">Received</p>
+          <p className="tnum text-[19px] font-bold mt-0.5 tracking-tight">{formatINR(received, 0)}</p>
         </div>
-
-        <div className="flex-1 bg-[#1B1D22] rounded-3xl p-5 border border-[#000000] flex flex-col">
-          <div className="w-8 h-8 rounded-full bg-[#000000] flex items-center justify-center text-[#FFFFFF] mb-4">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        <div className="glass rounded-3xl p-5">
+          <div className="w-9 h-9 rounded-full glass-2 flex items-center justify-center text-white mb-4">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="19" x2="12" y2="5" /><polyline points="5 12 12 5 19 12" /></svg>
           </div>
-          <span className="text-zinc-400 text-xs mb-1">Total Deposit</span>
-          <span className="text-lg font-bold">{formatINR(statistics.totalDeposit, 0)}</span>
-        </div>
-      </div>
-      
-      {/* Spacer cards just to show there's more content in scroll, matching image partially */}
-      <div className="px-6 mt-4 flex gap-4 mb-4">
-        <div className="flex-1 bg-[#1B1D22] rounded-3xl p-5 border border-[#000000] flex flex-col">
-          <div className="w-8 h-8 rounded-full bg-[#000000] flex items-center justify-center text-[#FFFFFF] mb-4">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-          </div>
-        </div>
-        <div className="flex-1 bg-[#1B1D22] rounded-3xl p-5 border border-[#000000] flex flex-col">
-          <div className="w-8 h-8 rounded-full bg-[#000000] flex items-center justify-center text-[#FFFFFF] mb-4">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-          </div>
+          <p className="text-[var(--text-2)] text-[12px]">Sent</p>
+          <p className="tnum text-[19px] font-bold mt-0.5 tracking-tight">{formatINR(sent, 0)}</p>
         </div>
       </div>
     </div>
